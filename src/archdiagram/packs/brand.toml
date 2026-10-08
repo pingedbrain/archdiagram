@@ -1,0 +1,38 @@
+# Simple Icons (CC0 1.0): single-colour 24x24 brand glyphs, coloured with each brand's official hex.
+# Every SVG file stem (slug) is a valid name: brand:<slug>. Logos stay trademarks of their owners.
+name = "brand"
+title = "Simple Icons"
+version = "16.34.0"
+homepage = "https://simpleicons.org/"
+license = "Icons CC0 1.0; the marks are trademarks of their owners. Follow each brand's guidelines (simple-icons data 'guidelines' field); do not imply endorsement."
+source = { kind = "archive", url = "https://registry.npmjs.org/simple-icons/-/simple-icons-16.34.0.tgz" }
+include = ["package/icons/*.svg"]
+color = "brand"
+brand_data = "package/data/simple-icons.json"
+tile = true
+inset = 0.5
+
+[aliases]
+jira = "package/icons/jira.svg"
+confluence = "package/icons/confluence.svg"
+bitbucket = "package/icons/bitbucket.svg"
+github = "package/icons/github.svg"
+gitlab = "package/icons/gitlab.svg"
+datadog = "package/icons/datadog.svg"
+sentry = "package/icons/sentry.svg"
+grafana = "package/icons/grafana.svg"
+prometheus = "package/icons/prometheus.svg"
+pagerduty = "package/icons/pagerduty.svg"
+anthropic = "package/icons/anthropic.svg"
+claude = "package/icons/claude.svg"
+docker = "package/icons/docker.svg"
+kubernetes = "package/icons/kubernetes.svg"
+terraform = "package/icons/terraform.svg"
+jenkins = "package/icons/jenkins.svg"
+postgresql = "package/icons/postgresql.svg"
+redis = "package/icons/redis.svg"
+kafka = "package/icons/apachekafka.svg"
+python = "package/icons/python.svg"
+notion = "package/icons/notion.svg"
+googlechat = "package/icons/googlechat.svg"
+discord = "package/icons/discord.svg"

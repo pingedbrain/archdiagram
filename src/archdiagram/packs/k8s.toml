@@ -1,0 +1,34 @@
+# Kubernetes icons from kubernetes/community (CC BY 4.0), pinned to a commit. Fetched file by file: the repo
+# tarball is ~100 MB for ~40 small SVGs. Unlabeled variants: the diagram draws its own labels.
+name = "k8s"
+title = "Kubernetes icons (kubernetes/community)"
+version = "6749f17"
+homepage = "https://github.com/kubernetes/community/tree/main/icons"
+license = "CC BY 4.0, (c) The Kubernetes Authors. Credit them in the caption or page footer."
+source = { kind = "files", url = "https://raw.githubusercontent.com/kubernetes/community/6749f174735beca5c25b4f703fc71ff4af4aea03/icons/svg/" }
+include = ["*.svg"]
+color = "keep"
+tile = false
+
+[aliases]
+pod = "resources/unlabeled/pod.svg"
+deployment = "resources/unlabeled/deploy.svg"
+service = "resources/unlabeled/svc.svg"
+ingress = "resources/unlabeled/ing.svg"
+namespace = "resources/unlabeled/ns.svg"
+configmap = "resources/unlabeled/cm.svg"
+secret = "resources/unlabeled/secret.svg"
+job = "resources/unlabeled/job.svg"
+cronjob = "resources/unlabeled/cronjob.svg"
+statefulset = "resources/unlabeled/sts.svg"
+daemonset = "resources/unlabeled/ds.svg"
+replicaset = "resources/unlabeled/rs.svg"
+hpa = "resources/unlabeled/hpa.svg"
+pv = "resources/unlabeled/pv.svg"
+pvc = "resources/unlabeled/pvc.svg"
+serviceaccount = "resources/unlabeled/sa.svg"
+networkpolicy = "resources/unlabeled/netpol.svg"
+crd = "resources/unlabeled/crd.svg"
+node = "infrastructure_components/unlabeled/node.svg"
+control-plane = "infrastructure_components/unlabeled/control-plane.svg"
+etcd = "infrastructure_components/unlabeled/etcd.svg"

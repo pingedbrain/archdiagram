@@ -1,0 +1,28 @@
+# Azure Architecture Icons (official, from https://learn.microsoft.com/azure/architecture/icons/). 18x18 artboard.
+name = "azure"
+title = "Azure Public Service Icons"
+version = "V24"
+homepage = "https://learn.microsoft.com/en-us/azure/architecture/icons/"
+license = "Microsoft permits use in architecture diagrams; do not crop, flip, rotate or distort the icons."
+source = { kind = "archive", url = "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip" }
+include = ["Azure_Public_Service_Icons/Icons/*/*.svg"]
+color = "keep"
+tile = false
+
+[aliases]
+functions = "Azure_Public_Service_Icons/Icons/compute/10029-icon-service-Function-Apps.svg"
+aks = "Azure_Public_Service_Icons/Icons/containers/10023-icon-service-Kubernetes-Services.svg"
+app-service = "Azure_Public_Service_Icons/Icons/app services/10035-icon-service-App-Services.svg"
+vm = "Azure_Public_Service_Icons/Icons/compute/10021-icon-service-Virtual-Machine.svg"
+storage = "Azure_Public_Service_Icons/Icons/storage/10086-icon-service-Storage-Accounts.svg"
+cosmos = "Azure_Public_Service_Icons/Icons/databases/10121-icon-service-Azure-Cosmos-DB.svg"
+sql = "Azure_Public_Service_Icons/Icons/databases/10130-icon-service-SQL-Database.svg"
+keyvault = "Azure_Public_Service_Icons/Icons/security/10245-icon-service-Key-Vaults.svg"
+service-bus = "Azure_Public_Service_Icons/Icons/integration/10836-icon-service-Azure-Service-Bus.svg"
+event-hubs = "Azure_Public_Service_Icons/Icons/analytics/00039-icon-service-Event-Hubs.svg"
+apim = "Azure_Public_Service_Icons/Icons/integration/10042-icon-service-API-Management-Services.svg"
+logic-apps = "Azure_Public_Service_Icons/Icons/integration/02631-icon-service-Logic-Apps.svg"
+monitor = "Azure_Public_Service_Icons/Icons/management + governance/00001-icon-service-Monitor.svg"
+vnet = "Azure_Public_Service_Icons/Icons/networking/10061-icon-service-Virtual-Networks.svg"
+acr = "Azure_Public_Service_Icons/Icons/containers/10105-icon-service-Container-Registries.svg"
+openai = "Azure_Public_Service_Icons/Icons/ai + machine learning/03438-icon-service-Azure-OpenAI.svg"

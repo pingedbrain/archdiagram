@@ -1,0 +1,15 @@
+title: Multi-cloud
+icons: { packs: [gcp, azure, k8s, brand] }
+nodes:
+  run: { icon: gcp:cloud-run, at: [0, 0], label: Cloud Run }
+  bq: { icon: gcp:bigquery, at: [1, 0], label: BigQuery }
+  fn: { icon: azure:functions, at: [2, 0], label: Functions }
+  cosmos: { icon: azure:cosmos, at: [3, 0], label: Cosmos DB }
+  dep: { icon: k8s:deployment, at: [4, 0], label: Deployment }
+  gh: { icon: brand:github, at: [5, 0], label: GitHub }
+edges:
+  - { from: run, to: bq, label: loads }
+  - { from: bq, to: fn, label: triggers }
+  - { from: fn, to: cosmos, label: writes }
+  - { from: cosmos, to: dep, label: feeds }
+  - { from: dep, to: gh, label: pulls }

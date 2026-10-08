@@ -1,0 +1,8 @@
+# Icon packages are downloaded into a cache, never committed (provider terms: use is fine, redistribution is not).
+icons/
+*.zip
+*.tgz
+.venv/
+__pycache__/
+.pytest_cache/
+out/

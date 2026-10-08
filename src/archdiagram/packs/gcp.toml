@@ -1,0 +1,26 @@
+# Google Cloud "core products" icons (official, from https://cloud.google.com/icons). Multicolour product marks.
+# The package only ships ~18 flagship products; category and legacy sets live in sibling zips on the same page.
+name = "gcp"
+title = "Google Cloud core product icons"
+version = "2025-08"
+homepage = "https://cloud.google.com/icons"
+license = "Google permits use in architecture diagrams; follow Google's brand guidelines and do not modify the marks."
+source = { kind = "archive", url = "https://services.google.com/fh/files/misc/core-products-icons.zip" }
+include = ["Unique Icons/*/SVG/*.svg"]
+color = "keep"
+tile = true
+inset = 0.7
+
+[aliases]
+cloud-run = "Unique Icons/Cloud Run/SVG/CloudRun-512-color-rgb.svg"
+gke = "Unique Icons/GKE/SVG/GKE-512-color.svg"
+bigquery = "Unique Icons/BigQuery/SVG/BigQuery-512-color.svg"
+cloud-storage = "Unique Icons/Cloud Storage/SVG/Cloud_Storage-512-color.svg"
+cloud-sql = "Unique Icons/Cloud SQL/SVG/CloudSQL-512-color.svg"
+compute-engine = "Unique Icons/Compute Engine/SVG/ComputeEngine-512-color-rgb.svg"
+vertex-ai = "Unique Icons/Vertex AI/SVG/VertexAI-512-color.svg"
+spanner = "Unique Icons/Cloud Spanner/SVG/CloudSpanner-512-color.svg"
+alloydb = "Unique Icons/AlloyDB/SVG/AlloyDB-512-color.svg"
+looker = "Unique Icons/Looker/SVG/Looker-512-color.svg"
+apigee = "Unique Icons/Apigee/SVG/Apigee-512-color-rgb.svg"
+anthos = "Unique Icons/Anthos/SVG/Anthos-512-color.svg"

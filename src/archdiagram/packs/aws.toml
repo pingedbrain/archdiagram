@@ -1,0 +1,34 @@
+# AWS Architecture Icons (official). Service icons: 64x64 artboard with a coloured square background.
+name = "aws"
+title = "AWS Architecture Icons"
+version = "07312026"
+homepage = "https://aws.amazon.com/architecture/icons/"
+license = "AWS permits use of the icons in architecture diagrams; do not redistribute the package or alter the icons."
+source = { kind = "archive", url = "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip" }
+include = ["Architecture-Service-Icons_07312026/*/48/*.svg"]
+color = "keep"
+tile = false
+
+[aliases]
+lambda = "Architecture-Service-Icons_07312026/Arch_Compute/48/Arch_AWS-Lambda_48.svg"
+apigw = "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/48/Arch_Amazon-API-Gateway_48.svg"
+ddb = "Architecture-Service-Icons_07312026/Arch_Databases/48/Arch_Amazon-DynamoDB_48.svg"
+s3 = "Architecture-Service-Icons_07312026/Arch_Storage/48/Arch_Amazon-Simple-Storage-Service_48.svg"
+athena = "Architecture-Service-Icons_07312026/Arch_Analytics/48/Arch_Amazon-Athena_48.svg"
+glue = "Architecture-Service-Icons_07312026/Arch_Analytics/48/Arch_AWS-Glue_48.svg"
+agentcore = "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/48/Arch_Amazon-Bedrock-AgentCore_48.svg"
+bedrock = "Architecture-Service-Icons_07312026/Arch_Artificial-Intelligence/48/Arch_Amazon-Bedrock_48.svg"
+eventbridge = "Architecture-Service-Icons_07312026/Arch_Application-Integration/48/Arch_Amazon-EventBridge_48.svg"
+eks = "Architecture-Service-Icons_07312026/Arch_Containers/48/Arch_Amazon-Elastic-Kubernetes-Service_48.svg"
+ecr = "Architecture-Service-Icons_07312026/Arch_Containers/48/Arch_Amazon-Elastic-Container-Registry_48.svg"
+cloudwatch = "Architecture-Service-Icons_07312026/Arch_Management-Tools/48/Arch_Amazon-CloudWatch_48.svg"
+sqs = "Architecture-Service-Icons_07312026/Arch_Application-Integration/48/Arch_Amazon-Simple-Queue-Service_48.svg"
+sns = "Architecture-Service-Icons_07312026/Arch_Application-Integration/48/Arch_Amazon-Simple-Notification-Service_48.svg"
+rds = "Architecture-Service-Icons_07312026/Arch_Databases/48/Arch_Amazon-RDS_48.svg"
+aurora = "Architecture-Service-Icons_07312026/Arch_Databases/48/Arch_Amazon-Aurora_48.svg"
+cognito = "Architecture-Service-Icons_07312026/Arch_Security-Identity/48/Arch_Amazon-Cognito_48.svg"
+secrets = "Architecture-Service-Icons_07312026/Arch_Security-Identity/48/Arch_AWS-Secrets-Manager_48.svg"
+iam = "Architecture-Service-Icons_07312026/Arch_Security-Identity/48/Arch_AWS-Identity-and-Access-Management_48.svg"
+kms = "Architecture-Service-Icons_07312026/Arch_Security-Identity/48/Arch_AWS-Key-Management-Service_48.svg"
+vpc = "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/48/Arch_Amazon-Virtual-Private-Cloud_48.svg"
+stepfunctions = "Architecture-Service-Icons_07312026/Arch_Application-Integration/48/Arch_AWS-Step-Functions_48.svg"

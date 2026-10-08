@@ -1,0 +1,26 @@
+# Generic glyphs: the AWS "Res_General-Icons" light set, ink recoloured to currentColor so they follow the theme.
+name = "generic"
+title = "Generic resource glyphs (from the AWS icon package)"
+version = "07312026"
+homepage = "https://aws.amazon.com/architecture/icons/"
+license = "Same terms as the AWS Architecture Icons: use in diagrams, do not redistribute the package."
+source = { kind = "archive", url = "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip" }
+include = ["Resource-Icons_07312026/Res_General-Icons/Res_48_Light/*.svg"]
+color = "ink"
+ink = "#2[34]2F3[DE]"
+tile = true
+inset = 0.78
+
+[aliases]
+users = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Users_48_Light.svg"
+user = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_User_48_Light.svg"
+chat = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Chat_48_Light.svg"
+script = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_JSON-Script_48_Light.svg"
+gear = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Gear_48_Light.svg"
+git = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Git-Repository_48_Light.svg"
+internet = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Internet_48_Light.svg"
+document = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Document_48_Light.svg"
+client = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Client_48_Light.svg"
+mobile = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Mobile-client_48_Light.svg"
+database = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Database_48_Light.svg"
+server = "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Server_48_Light.svg"

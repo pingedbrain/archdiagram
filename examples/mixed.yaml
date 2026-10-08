@@ -1,0 +1,30 @@
+# Mixed providers in one figure: AWS services, Simple Icons brand marks, generic glyphs and a
+# Kubernetes resource, all normalised to the same grid icon size.
+title: Deploy Notifications
+claim: >-
+  a Bitbucket push goes through API Gateway and a Lambda into SQS; a Kubernetes worker drains the
+  queue, posts to Slack and opens a Jira ticket when the deploy fails, while errors land in Sentry.
+caption: >-
+  In blue, the path every push takes. Slack is drawn with the generic chat glyph: Simple Icons no
+  longer ships the Slack mark. Icons: AWS Architecture Icons, Simple Icons (CC0), Kubernetes
+  icons (CC BY 4.0, The Kubernetes Authors).
+icons: { packs: [aws, brand, generic, k8s] }
+
+nodes:
+  repo:   { icon: brand:bitbucket, at: [0, 0], label: Bitbucket, sub: push webhook }
+  api:    { icon: apigw, at: [1, 0], label: API Gateway, sub: public }
+  hook:   { icon: lambda, at: [2, 0], label: Webhook, sub: Lambda, accent: true }
+  queue:  { icon: sqs, at: [3, 0], label: deploys, sub: SQS, mono: true }
+  worker: { icon: k8s:pod, at: [4, 0], label: notifier, sub: pod on EKS, mono: true }
+  slack:  { icon: generic:chat, at: [5, 0], label: Slack, sub: "#deploys" }
+  jira:   { icon: jira, at: [4, 1.2], label: Jira, sub: ticket on failure }
+  sentry: { icon: brand:sentry, at: [2, 1.2], label: Sentry, sub: errors }
+
+edges:
+  - { from: repo, to: api, label: push }
+  - { from: api, to: hook, label: signed }
+  - { from: hook, to: queue, label: enqueue, accent: true }
+  - { from: queue, to: worker, label: drain, accent: true }
+  - { from: worker, to: slack, label: posts, accent: true }
+  - { from: worker, to: jira, label: opens }
+  - { from: hook, to: sentry, label: reports }
