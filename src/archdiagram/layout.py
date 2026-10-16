@@ -7,7 +7,8 @@ collision report can point at it.
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from collections import deque
+from dataclasses import dataclass, replace
 
 from .spec import Band, Edge, LegendItem, Node, Spec, Zone
 
@@ -152,8 +153,48 @@ def center(spec: Spec, at: tuple[float, float]) -> tuple[float, float]:
     return g.origin[0] + at[0] * g.col, g.origin[1] + at[1] * g.row
 
 
+def auto_at(spec: Spec) -> Spec:
+    """Fill `at` for specs where no node has one: columns = longest-path rank from sources,
+    rows = barycentric order inside the rank."""
+    if not spec.nodes or any(n.at is not None for n in spec.nodes):
+        return spec
+    ids = [n.id for n in spec.nodes]
+    succ: dict[str, list[str]] = {i: [] for i in ids}
+    pred: dict[str, list[str]] = {i: [] for i in ids}
+    for e in spec.edges:
+        if e.src in pred and e.dst in succ:
+            succ[e.src].append(e.dst)
+            pred[e.dst].append(e.src)
+    rank: dict[str, int] = {}
+    deg = {i: len(pred[i]) for i in ids}
+    q = deque([i for i in ids if deg[i] == 0])
+    while q:
+        u = q.popleft()
+        rank.setdefault(u, 0)
+        for v in succ[u]:
+            rank[v] = max(rank.get(v, 0), rank[u] + 1)
+            deg[v] -= 1
+            if deg[v] == 0:
+                q.append(v)
+    for i in ids:  # nodes inside a cycle: one past their deepest ranked predecessor
+        if i not in rank:
+            rank[i] = max([rank[p] for p in pred[i] if p in rank] or [-1]) + 1
+    cols: dict[int, list[str]] = {}
+    for i in ids:
+        cols.setdefault(rank[i], []).append(i)
+    pos: dict[str, int] = {}
+    for r in sorted(cols):
+        def bary(i: str) -> float:
+            known = [pos[p] for p in pred[i] if p in pos]
+            return sum(known) / len(known) if known else float(ids.index(i))
+        cols[r].sort(key=bary)
+        for row, i in enumerate(cols[r]):
+            pos[i] = row
+    return replace(spec, nodes=tuple(replace(n, at=(rank[n.id], pos[n.id])) for n in spec.nodes))
+
+
 def place_node(spec: Spec, n: Node) -> PlacedNode:
-    cx, cy = center(spec, n.at)
+    cx, cy = center(spec, n.at or (0, 0))
     size = n.size or spec.grid.icon
     half = size / 2 + (RING if n.accent else 0)
     y = cy + size / 2 + LABEL_DY + (RING if n.accent else 0)
@@ -162,8 +203,12 @@ def place_node(spec: Spec, n: Node) -> PlacedNode:
     if n.label:
         cls = "t gk-t" if n.accent else "t mono" if n.mono else "t"
         texts.append(Text(f"node {n.id} label", n.label, x, y, anchor, cls))
+    ty = y + (SUB_DY if n.label else 0)
     if n.sub:
-        texts.append(Text(f"node {n.id} sub", n.sub, x, y + SUB_DY if n.label else y, anchor, "s"))
+        texts.append(Text(f"node {n.id} sub", n.sub, x, ty, anchor, "s"))
+        ty += SUB_DY
+    if n.note:
+        texts.append(Text(f"node {n.id} note", n.note, x, ty, anchor, "s"))
     return PlacedNode(n, cx, cy, size, tuple(texts))
 
 
@@ -279,6 +324,7 @@ def crossings(edges: list[PlacedEdge] | tuple[PlacedEdge, ...]) -> dict[int, dic
 
 
 def layout(spec: Spec) -> Layout:
+    spec = auto_at(spec)
     nodes = {n.id: place_node(spec, n) for n in spec.nodes}
     edges = []
     for i, (e, name) in enumerate(zip(spec.edges, edge_names(spec))):
@@ -299,7 +345,8 @@ def layout(spec: Spec) -> Layout:
         label = None
         if zone.label:
             lx = box.x1 + (ZONE_BADGE_X + ZONE_BADGE + 8 if badge else 16)
-            label = Text(f"zone {i} label", zone.label, lx, box.y1 + 24, "start", "band-t")
+            ly = box.y1 + 24 if zone.label_side == "top" else box.y2 - 12
+            label = Text(f"zone {i} label", zone.label, lx, ly, "start", "band-t")
         zones.append(PlacedZone(i, zone, box, label, badge))
 
     boxes = [p.box for p in nodes.values()] + [t.box for p in nodes.values() for t in p.texts]

@@ -10,7 +10,7 @@ import re
 from html import escape
 
 from . import icons
-from .layout import Layout, PlacedNode, Text, crossings
+from .layout import Layout, PlacedNode, Text, crossings, segments
 from .spec import Spec
 
 LIGHT = {
@@ -54,6 +54,14 @@ _RULES = """\
 @keyframes arch-ants { to { stroke-dashoffset: -10; } }
 .arch .mk { fill: var(--fg-3); }
 .arch .mk-a { fill: var(--primary); }
+.arch .mko { fill: none; stroke: var(--fg-3); stroke-width: 1.4; }
+.arch .mko-a { fill: none; stroke: var(--primary); stroke-width: 1.6; }
+.arch .mkd { fill: var(--fg-3); }
+.arch .mkd-a { fill: var(--primary); }
+.arch .num { fill: var(--surface); stroke: var(--fg-3); stroke-width: 1.2; }
+.arch .num.acc { stroke: var(--primary); }
+.arch .num-t { fill: var(--fg); font-size: 10px; font-weight: 700; }
+.arch .num-t.acc { fill: var(--primary); }
 .arch .l { fill: var(--fg-2); font-size: 11.5px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
 .arch .acc-t { fill: var(--primary); font-weight: 600; }
 .arch .ink { color: var(--fg); }
@@ -100,6 +108,8 @@ def _unit(a, b) -> tuple[float, float]:
 
 
 HOP_R = 7  # px radius of the jump arc where a vertical wire hops a horizontal one
+TINT_HEX = {"orange": "#E77D02", "green": "#7AA116", "blue": "#248BD2",
+            "purple": "#8C4FFF", "gray": "#879196", "red": "#DD344C"}
 
 
 def _path(points, radius: float = 12, hops: dict | None = None) -> str:
@@ -156,7 +166,6 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
         sid = _symbol_id(prefix, ref)
         symbols[sid] = icons.build_symbol(pack, ref, sid, monochrome=ref.pack in spec.icons.monochrome)
 
-    mk, mka = f"{prefix}-mk", f"{prefix}-mk-acc"
     v = lay.view
     aria = f"{spec.title}: {spec.claim}" if spec.claim else spec.title
     head = '<svg xmlns="http://www.w3.org/2000/svg" class="arch"' if standalone else "<svg"
@@ -165,9 +174,11 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
         out.append("<style>" + tokens_css() + "\n" + css()
                    + "svg.arch { color: var(--fg-3); background: var(--surface); font-family: var(--font-body); }</style>")
     out.append("<defs>")
-    for mid, cls in ((mk, "mk"), (mka, "mk-a")):
-        out.append(f'<marker id="{mid}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" '
-                   f'orient="auto-start-reverse"><path class="{cls}" d="M0,0 L10,5 L0,10 z"/></marker>')
+    shapes = {"mk": "M0,0 L10,5 L0,10 z", "mko": "M0,0 L10,5 L0,10", "mkd": "M0,5 L5,0 L10,5 L5,10 z"}
+    for name, d in shapes.items():
+        for acc in ("", "-a"):
+            out.append(f'<marker id="{prefix}-{name}{acc}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" '
+                       f'orient="auto-start-reverse"><path class="{name}{acc}" d="{d}"/></marker>')
     out += symbols.values()
     out.append("</defs>")
 
@@ -181,8 +192,9 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
         cls = {"solid": "zone", "dashed": "zone b2", "dotted": "zone b3"}[z.zone.style]
         if z.zone.tint:
             cls += f" t-{z.zone.tint}"
+        fill = f' fill="{TINT_HEX[z.zone.tint]}" fill-opacity="0.08"' if z.zone.style == "solid" and z.zone.tint else ""
         out.append(f'<rect class="{cls}" x="{_n(z.box.x1)}" y="{_n(z.box.y1)}" width="{_n(z.box.x2 - z.box.x1)}" '
-                   f'height="{_n(z.box.y2 - z.box.y1)}" rx="10"/>')
+                   f'height="{_n(z.box.y2 - z.box.y1)}" rx="10"{fill}/>')
         if z.badge:
             sid = _symbol_id(prefix, badges[z.index])
             w = _n(z.badge.x2 - z.badge.x1)
@@ -193,7 +205,9 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
 
     hop_map = crossings(lay.edges)
     for e in lay.edges:  # edges first, so icons sit on top
-        cls, marker = ("a acc", mka) if e.edge.accent else ("a", mk)
+        cls = "a acc" if e.edge.accent else "a"
+        mname = {"filled": "mk", "open": "mko", "diamond": "mkd"}[e.edge.arrow]
+        marker = f"{prefix}-{mname}{'-a' if e.edge.accent else ''}"
         if e.edge.dashed:
             cls += " dash"
         if e.edge.flow == "ants":
@@ -210,6 +224,16 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
 
     for nid, p in lay.nodes.items():
         out += _node(p, refs[nid], symbols[_symbol_id(prefix, refs[nid])], _symbol_id(prefix, refs[nid]))
+
+    seq = 0
+    for e in lay.edges:  # sequence chips sit on the wire midpoint
+        if not e.edge.num:
+            continue
+        seq += 1
+        (x1, y1), (x2, y2) = max(segments(e.points), key=lambda s: abs(s[1][0] - s[0][0]) + abs(s[1][1] - s[0][1]))
+        mx, my, acc = (x1 + x2) / 2, (y1 + y2) / 2, " acc" if e.edge.accent else ""
+        out.append(f'<circle class="num{acc}" cx="{_n(mx)}" cy="{_n(my)}" r="8"/>')
+        out.append(f'<text class="num-t{acc}" x="{_n(mx)}" y="{_n(my + 3.5)}" text-anchor="middle">{seq}</text>')
 
     if lay.legend:
         lb = lay.legend.box

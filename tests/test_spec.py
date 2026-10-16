@@ -12,8 +12,11 @@ def errors(text: str) -> list[str]:
     return exc.value.errors
 
 
-def test_missing_at_names_the_node():
-    assert "nodes.gk.at: required" in errors("title: T\nnodes:\n  gk: { icon: lambda }\n")
+def test_at_is_all_or_none():
+    errs = errors("title: T\nnodes:\n  gk: { icon: lambda }\n  b: { icon: ddb, at: [1, 0] }\n")
+    assert "give at for every node or for none" in errs[0]
+    spec = spec_from("title: T\nnodes:\n  gk: { icon: lambda }\n  b: { icon: ddb }\n")
+    assert all(n.at is None for n in spec.nodes)  # no at anywhere -> automatic layout
 
 
 def test_unknown_key_lists_allowed_keys():
@@ -27,8 +30,8 @@ def test_yaml_boolean_label_asks_for_quotes():
 
 
 def test_every_error_is_reported_not_just_the_first():
-    errs = errors("title: T\nnodes:\n  a: { icon: x }\n  b: { at: [1, 1] }\nedges:\n  - { from: a }\n")
-    assert {"nodes.a.at: required", "nodes.b.icon: required", "edges[0].to: required"} <= set(errs)
+    errs = errors("title: T\nnodes:\n  a: { icon: x, at: [0, 0] }\n  b: { at: [1, 1] }\nedges:\n  - { from: a }\n")
+    assert {"nodes.b.icon: required", "edges[0].to: required"} <= set(errs)
 
 
 def test_defaults_and_prefix_slug():

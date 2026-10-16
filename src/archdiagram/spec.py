@@ -58,6 +58,7 @@ class Zone:
     style: ZoneStyle = "dashed"
     badge: str = ""
     tint: str = ""
+    label_side: str = "top"  # "top" | "bottom" — inside corner for the zone label
 
 
 @dataclass(frozen=True)
@@ -72,9 +73,10 @@ class LegendItem:
 class Node:
     id: str
     icon: str
-    at: tuple[float, float]
+    at: tuple[float, float] | None = None
     label: str = ""
     sub: str = ""
+    note: str = ""
     accent: bool = False
     size: float | None = None
     label_side: LabelSide = "below"
@@ -92,6 +94,8 @@ class Edge:
     flow: str = ""  # "" | "dots" | "ants"
     dashed: bool = False
     both: bool = False
+    arrow: str = "filled"  # "filled" | "open" | "diamond"
+    num: bool = False
     label_side: EdgeLabelSide | None = None
 
     @property
@@ -240,7 +244,7 @@ def parse(doc: Any) -> Spec:
         raw_zones = []
     for i, z in enumerate(raw_zones):
         p = f"zones[{i}]"
-        if not r.keys(p, z, {"label", "cells", "style", "badge", "tint"}, {"cells"}):
+        if not r.keys(p, z, {"label", "cells", "style", "badge", "tint", "label_side"}, {"cells"}):
             continue
         cells = z.get("cells")
         if not isinstance(cells, (list, tuple)) or len(cells) != 4:
@@ -255,6 +259,7 @@ def parse(doc: Any) -> Spec:
             style=r.choice(f"{p}.style", z.get("style"), ("solid", "dashed", "dotted"), "dashed"),
             badge=r.text(f"{p}.badge", z.get("badge")),
             tint=r.choice(f"{p}.tint", z.get("tint"), TINTS, ""),
+            label_side=r.choice(f"{p}.label_side", z.get("label_side"), ("top", "bottom"), "top"),
         ))
 
     legend = []
@@ -281,20 +286,24 @@ def parse(doc: Any) -> Spec:
     if not isinstance(raw_nodes, dict) or not raw_nodes:
         r.fail("nodes", "expected a non-empty mapping of node id -> node")
         raw_nodes = {}
-    node_keys = {"icon", "at", "label", "sub", "accent", "size", "label_side", "mono"}
+    node_keys = {"icon", "at", "label", "sub", "note", "accent", "size", "label_side", "mono"}
+    n_at = sum(1 for n in raw_nodes.values() if isinstance(n, dict) and "at" in n)
+    if n_at and n_at != len(raw_nodes):
+        r.fail("nodes", "give at for every node or for none (empty at means automatic layout)")
     for nid, n in raw_nodes.items():
         p = f"nodes.{nid}"
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]*", str(nid)):
             r.fail(p, "node id must match [A-Za-z_][A-Za-z0-9_-]*")
-        if not r.keys(p, n, node_keys, {"icon", "at"}):
+        if not r.keys(p, n, node_keys, {"icon"}):
             continue
         size = n.get("size")
         nodes.append(Node(
             id=str(nid),
             icon=r.text(f"{p}.icon", n.get("icon")),
-            at=r.pair(f"{p}.at", n["at"], "[col, row]") if "at" in n else (0, 0),
+            at=r.pair(f"{p}.at", n["at"], "[col, row]") if "at" in n else None,
             label=r.text(f"{p}.label", n.get("label")),
             sub=r.text(f"{p}.sub", n.get("sub")),
+            note=r.text(f"{p}.note", n.get("note")),
             accent=r.flag(f"{p}.accent", n.get("accent")),
             size=None if size is None else r.num(f"{p}.size", size),
             label_side=r.choice(f"{p}.label_side", n.get("label_side"), ("below", "left", "right"), "below"),
@@ -306,7 +315,7 @@ def parse(doc: Any) -> Spec:
     if not isinstance(raw_edges, list):
         r.fail("edges", "expected a list")
         raw_edges = []
-    edge_keys = {"from", "to", "label", "route", "via", "accent", "flow", "dashed", "both", "label_side"}
+    edge_keys = {"from", "to", "label", "route", "via", "accent", "flow", "dashed", "both", "arrow", "num", "label_side"}
     for i, e in enumerate(raw_edges):
         p = f"edges[{i}]"
         if not r.keys(p, e, edge_keys, {"from", "to"}):
@@ -333,6 +342,8 @@ def parse(doc: Any) -> Spec:
             flow=flow,
             dashed=r.flag(f"{p}.dashed", e.get("dashed")),
             both=r.flag(f"{p}.both", e.get("both")),
+            arrow=r.choice(f"{p}.arrow", e.get("arrow"), ("filled", "open", "diamond"), "filled"),
+            num=r.flag(f"{p}.num", e.get("num")),
             label_side=r.choice(f"{p}.label_side", e.get("label_side"), ("above", "below", "left", "right"), None),
         ))
 

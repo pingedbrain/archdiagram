@@ -92,7 +92,8 @@ contain one another (nesting a subnet inside a VPC is fine; a partial crossing i
 | `label` | text | `""` | Small caps title inside the top-left corner, next to the badge. |
 | `style` | `solid` \| `dashed` \| `dotted` | `dashed` | `dashed`/`dotted` draw only the border (the AWS look); `solid` fills `--sunken`. |
 | `badge` | icon reference | `""` | Small icon at the top-left corner, AWS group style: `aws:group-vpc`, `aws:public-subnet`, `aws:aws-cloud`. |
-| `tint` | `orange` \| `green` \| `blue` \| `purple` \| `gray` \| `red` | `""` | Border colour, the AWS group palette (VPC orange, public subnet green, private blue). |
+| `tint` | `orange` \| `green` \| `blue` \| `purple` \| `gray` \| `red` | `""` | Border colour, the AWS group palette (VPC orange, public subnet green, private blue). With `solid` also tints the fill. |
+| `label_side` | `top` \| `bottom` | `top` | Corner where the label goes inside the zone. |
 
 The left and right borders run at the edges of the first and last column (midway through the
 gutter); the top and bottom leave 40 px / 68 px of room around the icons so labels and subs fit.
@@ -110,9 +111,10 @@ zones:
 | Key | Type | Default | Meaning |
 |---|---|---|---|
 | `icon` | text, **required** | — | Icon reference, see `icons`. |
-| `at` | `[col, row]`, **required** | — | Grid cell of the icon centre. |
+| `at` | `[col, row]` | auto | Grid cell of the icon centre. Give `at` for every node or for none: with none, columns come from the edges (longest-path rank) and rows order inside each column. |
 | `label` | text | `""` | Bold name (14 px). |
 | `sub` | text | `""` | Detail line under the label (11.5 px, muted). |
+| `note` | text | `""` | Third line under `sub` (11.5 px, muted). |
 | `accent` | bool | `false` | The node the argument hinges on: blue ring 8 px outside the icon, blue 16 px label. |
 | `size` | px | `grid.icon` | Icon size. Accent nodes usually use 52. |
 | `label_side` | `below` \| `left` \| `right` | `below` | `below`: centred, baseline 18 px under the icon (+8 with ring), sub 15 px lower. `left`/`right`: same baselines, right-/left-aligned 8 px outside the icon, which frees the space straight below for an edge. |
@@ -129,6 +131,8 @@ zones:
 | `accent` | bool | `false` | Blue, thicker, blue arrowhead and label. |
 | `dashed` | bool | `false` | Static dashed line, for async or optional links. |
 | `both` | bool | `false` | Arrowhead at both ends (request/response). |
+| `arrow` | `filled` \| `open` \| `diamond` | `filled` | Arrowhead style. |
+| `num` | bool | `false` | Numbered chip on the wire midpoint, counted over `num` edges in order (sequence diagrams: 1, 2, 3...). |
 | `flow` | bool \| `dots` \| `ants` | `false` | Animated traffic. `true`/`dots` = packets travel the path (SMIL); `ants` = marching dashes (CSS). Packets hide and dashes stop under `prefers-reduced-motion`. |
 | `label_side` | `above` \| `below` \| `left` \| `right` | auto | Picks the segment *and* the side: `above`/`below` use the longest horizontal segment, `left`/`right` the longest vertical one. |
 
