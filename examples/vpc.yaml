@@ -3,9 +3,14 @@ claim: el tráfico entra por el igw al subnet público; el privado sale por el N
 caption: Subnets público y privado dentro de la VPC; iconos de recurso del pack awsres.
 icons: { packs: [aws, awsres, generic] }
 zones:
-  - { cells: [1, -0.5, 4.5, 1], label: "VPC 10.0.0.0/16", style: dashed, badge: aws:group-vpc }
-  - { cells: [1, 0, 2, 1], label: "public subnet", style: dotted, badge: aws:public-subnet }
-  - { cells: [3, 0, 4.4, 1], label: "private subnet", style: dotted, badge: aws:private-subnet }
+  - { cells: [1, -0.5, 4.5, 1], label: "VPC 10.0.0.0/16", style: dashed, badge: aws:group-vpc, tint: orange }
+  - { cells: [1, 0, 2, 1], label: "public subnet", style: dotted, badge: aws:public-subnet, tint: green }
+  - { cells: [3, 0, 4.4, 1], label: "private subnet", style: dotted, badge: aws:private-subnet, tint: blue }
+legend:
+  - { sample: dots, text: "tráfico" }
+  - { sample: ants, text: "egress" }
+  - { sample: zone, tint: orange, text: "VPC" }
+  - { sample: zone-dotted, tint: green, text: "subnet pública" }
 nodes:
   inet: { icon: generic:internet, at: [0, 0.5], label: Internet }
   igw:  { icon: awsres:igw, at: [1.3, 0], label: igw, mono: true }

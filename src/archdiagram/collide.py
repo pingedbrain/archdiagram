@@ -89,6 +89,11 @@ def overlaps(lay: Layout) -> list[Overlap]:
             texts.append((z.label.name, z.label.box, f"zone {z.index}", z.label.content))
     icons_ = [(f"node {nid} icon", p.box, f"node {nid}", "") for nid, p in lay.nodes.items()]
     icons_ += [(f"zone {z.index} badge", z.badge, f"zone {z.index}", "") for z in lay.zones if z.badge]
+    if lay.legend:
+        for it in lay.legend.items:
+            texts.append((it.label.name, it.label.box, f"legend {it.index}", it.label.content))
+            if it.item.icon:
+                icons_.append((f"legend {it.index} icon", it.swatch, f"legend {it.index}", ""))
     solids = texts + icons_
 
     out: list[Overlap] = []
@@ -257,6 +262,13 @@ def check(spec: Spec) -> list[Problem]:
             icons.resolve(z.badge, order)
         except icons.IconError as exc:
             problems.append(Problem(exc.kind, f"zone {i} badge", f"zone {i} badge: {exc.message}", exc.suggestion))
+    for i, it in enumerate(spec.legend):
+        if not it.icon:
+            continue
+        try:
+            icons.resolve(it.icon, order)
+        except icons.IconError as exc:
+            problems.append(Problem(exc.kind, f"legend {i} icon", f"legend {i}: {exc.message}", exc.suggestion))
 
     for name, e in zip([f"edge {e.name}" for e in spec.edges], spec.edges):
         for end, ref in (("from", e.src), ("to", e.dst)):
@@ -288,6 +300,8 @@ def check(spec: Spec) -> list[Problem]:
         things += [(f"zone {z.index}", z.box) for z in lay.zones]
         things += [(z.label.name, z.label.box) for z in lay.zones if z.label]
         things += [(f"zone {z.index} badge", z.badge) for z in lay.zones if z.badge]
+        if lay.legend:
+            things.append(("legend", lay.legend.box))
         for name, box in things:
             if not lay.view.contains(box):
                 problems.append(Problem("out_of_canvas", name, f"{name} {box.rounded()} is outside canvas {lay.view.rounded()}",

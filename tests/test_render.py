@@ -119,6 +119,23 @@ def test_elbow_edges_get_rounded_corners(cache):
     assert " Q" in out  # a quadratic at the corner, not a sharp join
 
 
+def test_crossing_edges_draw_a_hop_arc(cache):
+    out = render("title: T\nnodes:\n"
+                 "  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [2, 0] }\n"
+                 "  c: { icon: lambda, at: [1, -1] }\n  d: { icon: ddb, at: [1, 1] }\n"
+                 "edges:\n  - { from: a, to: b }\n  - { from: c, to: d }\n")
+    assert " A7 " in out  # the vertical wire jumps over the horizontal one
+
+
+def test_zone_tint_and_legend_render(cache):
+    out = render("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n"
+                 "zones:\n  - { cells: [0, 0, 0, 0], style: dashed, tint: green }\n"
+                 "legend:\n  - { sample: zone-dotted, tint: green, text: public }\n"
+                 "  - { icon: lambda, text: fn }\n")
+    assert 'class="zone b2 t-green"' in out and '<rect class="legend"' in out
+    assert 'class="zone b3 t-green"' in out and '>public</text>' in out and '>fn</text>' in out
+
+
 def test_awsres_icons_come_from_the_resource_archive(empty_cache):
     pack = icons.get_pack("awsres")
     blob = make_zip({pack.aliases["ec2"]: (FIX / "service.svg").read_bytes(),

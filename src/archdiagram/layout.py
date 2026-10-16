@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from .spec import Band, Edge, Node, Spec, Zone
+from .spec import Band, Edge, LegendItem, Node, Spec, Zone
 
 GAP = 4             # px between an icon (or ring) and the end of an edge
 RING = 8            # px the accent ring extends beyond the icon
@@ -26,6 +26,9 @@ ZONE_TOP = 40       # icon top of the first row -> zone top (room for label + ba
 ZONE_BOTTOM = 68    # icon bottom of the last row -> zone bottom (clears label + sub)
 ZONE_BADGE = 22     # badge icon size, top-left inside the zone
 ZONE_BADGE_X = 12   # badge left offset from the zone border
+HOP_CLEAR = 12      # no hop arc this close to a segment end
+LEGEND_ROW = 20     # px per legend row
+LEGEND_SW = 30      # swatch width inside the legend
 
 # font sizes per text class, matching the stylesheet
 SIZE = {"t": 14, "t mono": 12.5, "t gk-t": 16, "s": 11.5, "l": 11.5, "l acc-t": 11.5, "band-t": 11}
@@ -121,11 +124,26 @@ class PlacedZone:
 
 
 @dataclass(frozen=True)
+class PlacedLegendItem:
+    index: int
+    item: LegendItem
+    swatch: Box
+    label: Text
+
+
+@dataclass(frozen=True)
+class PlacedLegend:
+    box: Box
+    items: tuple[PlacedLegendItem, ...]
+
+
+@dataclass(frozen=True)
 class Layout:
     nodes: dict[str, PlacedNode]
     edges: tuple[PlacedEdge, ...]
     bands: tuple[PlacedBand, ...]
     zones: tuple[PlacedZone, ...]
+    legend: PlacedLegend | None
     view: Box
 
 
@@ -238,6 +256,28 @@ def points_box(points) -> Box:
     return Box(min(xs), min(ys), max(xs), max(ys))
 
 
+def crossings(edges: list[PlacedEdge] | tuple[PlacedEdge, ...]) -> dict[int, dict[int, list[tuple[float, float]]]]:
+    """Hop spots: {edge_index: {segment_index: [(x, y)]}} — a vertical segment crossing another
+    edge's horizontal wire gets a small jump arc at each crossing (the circuit-diagram convention)."""
+    out: dict[int, dict[int, list[tuple[float, float]]]] = {}
+    for e in edges:
+        vsegs = [(k, s) for k, s in enumerate(segments(e.points)) if abs(s[0][0] - s[1][0]) < 0.01]
+        if not vsegs:
+            continue
+        for f in edges:
+            if f is e or e.edge.src == f.edge.src or e.edge.dst == f.edge.dst:
+                continue  # forks and merges share their trunk on purpose
+            for p, q in segments(f.points):
+                if abs(p[1] - q[1]) > 0.01:
+                    continue
+                hx1, hx2, hy = min(p[0], q[0]), max(p[0], q[0]), p[1]
+                for k, (a, b) in vsegs:
+                    lo, hi = sorted((a[1], b[1]))
+                    if hx1 < a[0] < hx2 and lo + HOP_CLEAR < hy < hi - HOP_CLEAR:
+                        out.setdefault(e.index, {}).setdefault(k, []).append((a[0], hy))
+    return out
+
+
 def layout(spec: Spec) -> Layout:
     nodes = {n.id: place_node(spec, n) for n in spec.nodes}
     edges = []
@@ -277,12 +317,33 @@ def layout(spec: Spec) -> Layout:
         box = Box(content.x1 - BAND_PAD_X, top, content.x2 + BAND_PAD_X, bottom)
         bands.append(PlacedBand(i, band, box, Text(f"band {i} label", band.label, box.x1 + 16, top + 22, "start", "band-t")))
 
+    bands_box = None
+    for b in bands:
+        bands_box = b.box if bands_box is None else bands_box.union(b.box)
+
+    legend = None
+    if spec.legend:
+        bottom = max(content.y2, bands_box.y2 if bands_box else content.y2)
+        text_w = max(len(it.text) for it in spec.legend) * SIZE["l"] * 0.56
+        w = 14 + LEGEND_SW + 10 + text_w + 14
+        top = bottom + 20
+        items = []
+        for i, it in enumerate(spec.legend):
+            sy = top + 10 + i * LEGEND_ROW
+            swatch = Box(content.x1 + 14, sy + 3, content.x1 + 14 + LEGEND_SW, sy + 3 + 14)
+            items.append(PlacedLegendItem(
+                i, it, swatch, Text(f"legend {i} label", it.text, swatch.x2 + 10, sy + 14, "start", "l")))
+        legend = PlacedLegend(Box(content.x1, top, content.x1 + w, top + 10 + LEGEND_ROW * len(items) + 6),
+                              tuple(items))
+
     if spec.canvas:
         view = Box(0, 0, spec.canvas[0], spec.canvas[1])
     else:
         everything = content
         for b in bands:
             everything = everything.union(b.box).union(b.label.box)
+        if legend:
+            everything = everything.union(legend.box)
         view = Box(math.floor(everything.x1 - MARGIN), math.floor(everything.y1 - MARGIN),
                    math.ceil(everything.x2 + MARGIN), math.ceil(everything.y2 + MARGIN))
-    return Layout(nodes, tuple(edges), tuple(bands), tuple(zones), view)
+    return Layout(nodes, tuple(edges), tuple(bands), tuple(zones), legend, view)
