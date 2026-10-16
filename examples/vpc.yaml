@@ -1,0 +1,23 @@
+title: VPC Layout
+claim: el tráfico entra por el igw al subnet público; el privado sale por el NAT y lee S3
+caption: Subnets público y privado dentro de la VPC; iconos de recurso del pack awsres.
+icons: { packs: [aws, awsres, generic] }
+zones:
+  - { cells: [1, -0.5, 4.5, 1], label: "VPC 10.0.0.0/16", style: dashed, badge: aws:group-vpc }
+  - { cells: [1, 0, 2, 1], label: "public subnet", style: dotted, badge: aws:public-subnet }
+  - { cells: [3, 0, 4.4, 1], label: "private subnet", style: dotted, badge: aws:private-subnet }
+nodes:
+  inet: { icon: generic:internet, at: [0, 0.5], label: Internet }
+  igw:  { icon: awsres:igw, at: [1.3, 0], label: igw, mono: true }
+  alb:  { icon: awsres:alb, at: [2, 0], label: ALB }
+  nat:  { icon: awsres:nat, at: [1.5, 1], label: NAT }
+  app:  { icon: awsres:ec2, at: [3, 0.5], label: app }
+  db:   { icon: awsres:table, at: [4, 1], label: sessions, mono: true }
+  s3:   { icon: aws:s3, at: [5.5, 1], label: S3 }
+edges:
+  - { from: inet, to: igw, label: https }
+  - { from: igw, to: alb, label: https }
+  - { from: alb, to: app, label: forward, label_side: left }
+  - { from: app, to: db, label: rw }
+  - { from: app, to: nat, label: egress, route: vh }
+  - { from: app, to: s3, label: read, route: hv }

@@ -31,6 +31,9 @@ _RULES = """\
 .arch svg { display: block; width: 100%; min-width: 760px; height: auto; color: var(--fg-3); font-family: var(--font-body); }
 .arch .band { fill: var(--sunken); }
 .arch .band.b2 { fill: none; stroke: var(--line); stroke-dasharray: 5 5; }
+.arch .zone { fill: var(--sunken); }
+.arch .zone.b2 { fill: none; stroke: var(--line); stroke-dasharray: 5 5; }
+.arch .zone.b3 { fill: none; stroke: var(--fg-3); stroke-width: 2; stroke-dasharray: 0.5 5; stroke-linecap: round; }
 .arch .band-t { fill: var(--fg-3); font-size: 11px; font-weight: 600; letter-spacing: .08em; }
 .arch .t { fill: var(--fg); font-size: 14px; font-weight: 600; }
 .arch .t.mono { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; }
@@ -98,13 +101,14 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
     prefix = spec.id_prefix
     order = spec.icons.packs
     refs = {n.id: icons.resolve(n.icon, order) for n in spec.nodes}
-    for ref in refs.values():
+    badges = {z.index: icons.resolve(z.zone.badge, order) for z in lay.zones if z.zone.badge}
+    for ref in (*refs.values(), *badges.values()):
         pack = icons.get_pack(ref.pack)
         if not icons.is_fetched(pack):
             raise icons.IconError("icons_missing", f"pack {pack.name} is not in the cache ({icons.pack_dir(pack)})",
                                   f"run: archdiagram icons fetch {pack.name}")
     symbols: dict[str, str] = {}
-    for ref in sorted(set(refs.values()), key=lambda r: (r.pack, r.name)):
+    for ref in sorted(set(refs.values()) | set(badges.values()), key=lambda r: (r.pack, r.name)):
         pack = icons.get_pack(ref.pack)
         sid = _symbol_id(prefix, ref)
         symbols[sid] = icons.build_symbol(pack, ref, sid, monochrome=ref.pack in spec.icons.monochrome)
@@ -129,6 +133,18 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
         out.append(f'<rect class="{cls}" x="{_n(b.box.x1)}" y="{_n(b.box.y1)}" width="{_n(b.box.x2 - b.box.x1)}" '
                    f'height="{_n(b.box.y2 - b.box.y1)}" rx="14"/>')
         out.append(_text(b.label))
+
+    for z in sorted(lay.zones, key=lambda p: -(p.box.x2 - p.box.x1) * (p.box.y2 - p.box.y1)):
+        cls = {"solid": "zone", "dashed": "zone b2", "dotted": "zone b3"}[z.zone.style]
+        out.append(f'<rect class="{cls}" x="{_n(z.box.x1)}" y="{_n(z.box.y1)}" width="{_n(z.box.x2 - z.box.x1)}" '
+                   f'height="{_n(z.box.y2 - z.box.y1)}" rx="10"/>')
+        if z.badge:
+            sid = _symbol_id(prefix, badges[z.index])
+            w = _n(z.badge.x2 - z.badge.x1)
+            use = f'<use href="#{sid}" x="{_n(z.badge.x1)}" y="{_n(z.badge.y1)}" width="{w}" height="{w}"/>'
+            out.append(f'<g class="ink">{use}</g>' if "currentColor" in symbols[sid] else use)
+        if z.label:
+            out.append(_text(z.label))
 
     for e in lay.edges:  # edges first, so icons sit on top
         cls, marker = ("a acc", mka) if e.edge.accent else ("a", mk)

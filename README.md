@@ -134,7 +134,8 @@ references. The full spec — nodes, edges, `via` routing, bands, accents, label
 
 | Pack | Source | Licence |
 |---|---|---|
-| `aws` | AWS Architecture Icons 07312026 | AWS terms (use in diagrams) |
+| `aws` | AWS Architecture Icons 07312026 (+ group badges) | AWS terms (use in diagrams) |
+| `awsres` | AWS Resource Icons 07312026 | AWS terms |
 | `generic` | AWS `Res_General-Icons`, recoloured to `currentColor` | AWS terms |
 | `gcp` | Google Cloud core product icons | Google terms |
 | `azure` | Azure Public Service Icons V24 | Microsoft terms |

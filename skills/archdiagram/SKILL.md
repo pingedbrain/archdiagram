@@ -26,6 +26,11 @@ $AD icons fetch aws generic   # or: $AD icons fetch  (all packs, ~22 MB download
 The cache is `~/.cache/archdiagram/` (`ARCHDIAGRAM_CACHE` overrides). Never copy icons into the
 repo you are working in.
 
+Packs: `aws` (service icons + `group-*`/`public-subnet`/`aws-cloud` group badges for
+`zones[].badge`), `awsres` (per-resource glyphs: `awsres:ec2`, `awsres:nat`, `awsres:alb`...),
+`generic`, `gcp`, `azure`, `k8s`, `brand`. `zones:` draws VPC-style dashed/dotted containers
+around a `cells: [c1, r1, c2, r2]` range — see `docs/spec.md`.
+
 ## The loop
 
 1. Write the spec next to the document that will use it (e.g. `docs/figures/platform.yaml`).

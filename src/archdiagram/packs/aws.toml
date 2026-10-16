@@ -5,7 +5,7 @@ version = "07312026"
 homepage = "https://aws.amazon.com/architecture/icons/"
 license = "AWS permits use of the icons in architecture diagrams; do not redistribute the package or alter the icons."
 source = { kind = "archive", url = "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip" }
-include = ["Architecture-Service-Icons_07312026/*/48/*.svg"]
+include = ["Architecture-Service-Icons_07312026/*/48/*.svg", "Architecture-Group-Icons_07312026/*.svg"]
 color = "keep"
 tile = false
 
@@ -32,3 +32,15 @@ iam = "Architecture-Service-Icons_07312026/Arch_Security-Identity/48/Arch_AWS-Id
 kms = "Architecture-Service-Icons_07312026/Arch_Security-Identity/48/Arch_AWS-Key-Management-Service_48.svg"
 vpc = "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/48/Arch_Amazon-Virtual-Private-Cloud_48.svg"
 stepfunctions = "Architecture-Service-Icons_07312026/Arch_Application-Integration/48/Arch_AWS-Step-Functions_48.svg"
+group-vpc = "Architecture-Group-Icons_07312026/Virtual-private-cloud-VPC_32.svg"
+public-subnet = "Architecture-Group-Icons_07312026/Public-subnet_32.svg"
+private-subnet = "Architecture-Group-Icons_07312026/Private-subnet_32.svg"
+aws-cloud = "Architecture-Group-Icons_07312026/AWS-Cloud_32.svg"
+region = "Architecture-Group-Icons_07312026/Region_32.svg"
+account = "Architecture-Group-Icons_07312026/AWS-Account_32.svg"
+autoscaling-group = "Architecture-Group-Icons_07312026/Auto-Scaling-group_32.svg"
+spot-fleet = "Architecture-Group-Icons_07312026/Spot-Fleet_32.svg"
+data-center = "Architecture-Group-Icons_07312026/Corporate-data-center_32.svg"
+ec2-contents = "Architecture-Group-Icons_07312026/EC2-instance-contents_32.svg"
+server-contents = "Architecture-Group-Icons_07312026/Server-contents_32.svg"
+greengrass = "Architecture-Group-Icons_07312026/AWS-IoT-Greengrass-Deployment_32.svg"

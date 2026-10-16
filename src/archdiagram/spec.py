@@ -19,6 +19,7 @@ LabelSide = Literal["below", "left", "right"]
 EdgeLabelSide = Literal["above", "below", "left", "right"]
 Route = Literal["auto", "hv", "vh"]
 BandStyle = Literal["solid", "dashed"]
+ZoneStyle = Literal["solid", "dashed", "dotted"]
 
 
 class SpecError(ValueError):
@@ -46,6 +47,14 @@ class Band:
     label: str
     rows: tuple[float, float]
     style: BandStyle = "solid"
+
+
+@dataclass(frozen=True)
+class Zone:
+    cells: tuple[float, float, float, float]
+    label: str = ""
+    style: ZoneStyle = "dashed"
+    badge: str = ""
 
 
 @dataclass(frozen=True)
@@ -85,6 +94,7 @@ class Spec:
     icons: Icons = field(default_factory=Icons)
     grid: Grid = field(default_factory=Grid)
     bands: tuple[Band, ...] = ()
+    zones: tuple[Zone, ...] = ()
     edges: tuple[Edge, ...] = ()
     canvas: tuple[float, float] | None = None
     prefix: str = ""
@@ -172,7 +182,7 @@ class _Reader:
 
 def parse(doc: Any) -> Spec:
     r = _Reader()
-    top = {"title", "claim", "caption", "icons", "grid", "bands", "nodes", "edges", "canvas", "prefix"}
+    top = {"title", "claim", "caption", "icons", "grid", "bands", "zones", "nodes", "edges", "canvas", "prefix"}
     if not r.keys("spec", doc, top, {"title", "nodes"}):
         raise SpecError(r.errors)
 
@@ -207,6 +217,29 @@ def parse(doc: Any) -> Spec:
         if rows[0] > rows[1]:
             r.fail(f"{p}.rows", f"first row {rows[0]} is after last row {rows[1]}")
         bands.append(Band(r.text(f"{p}.label", b.get("label")), rows, r.choice(f"{p}.style", b.get("style"), ("solid", "dashed"), "solid")))
+
+    zones = []
+    raw_zones = doc.get("zones") or []
+    if not isinstance(raw_zones, list):
+        r.fail("zones", "expected a list")
+        raw_zones = []
+    for i, z in enumerate(raw_zones):
+        p = f"zones[{i}]"
+        if not r.keys(p, z, {"label", "cells", "style", "badge"}, {"cells"}):
+            continue
+        cells = z.get("cells")
+        if not isinstance(cells, (list, tuple)) or len(cells) != 4:
+            r.fail(f"{p}.cells", f"expected a [col1, row1, col2, row2] quadruple, got {cells!r}")
+            cells = (0, 0, 0, 0)
+        cells = tuple(r.num(f"{p}.cells[{j}]", v) for j, v in enumerate(cells))
+        if cells[0] > cells[2] or cells[1] > cells[3]:
+            r.fail(f"{p}.cells", f"first cell {cells[:2]} is past last cell {cells[2:]}")
+        zones.append(Zone(
+            cells,
+            label=r.text(f"{p}.label", z.get("label")),
+            style=r.choice(f"{p}.style", z.get("style"), ("solid", "dashed", "dotted"), "dashed"),
+            badge=r.text(f"{p}.badge", z.get("badge")),
+        ))
 
     nodes = []
     raw_nodes = doc.get("nodes")
@@ -271,7 +304,7 @@ def parse(doc: Any) -> Spec:
         title=r.text("title", doc.get("title")),
         claim=r.text("claim", doc.get("claim")),
         caption=r.text("caption", doc.get("caption")),
-        icons=icons, grid=grid, bands=tuple(bands), nodes=tuple(nodes), edges=tuple(edges),
+        icons=icons, grid=grid, bands=tuple(bands), zones=tuple(zones), nodes=tuple(nodes), edges=tuple(edges),
         canvas=canvas, prefix=prefix,
     )
 

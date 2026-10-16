@@ -7,7 +7,7 @@ import pytest
 from archdiagram import icons
 from archdiagram.layout import layout
 from archdiagram.render import css, fragment, standalone_svg
-from conftest import spec_from
+from conftest import FIX, make_zip, spec_from
 
 TWO = ("title: {title}\nnodes:\n  a: {{ icon: lambda, at: [0, 0], accent: true }}\n"
        "  b: {{ icon: generic:users, at: [1, 0] }}\nedges:\n  - {{ from: a, to: b, accent: true }}\n")
@@ -70,3 +70,26 @@ def test_css_has_light_fallbacks():
 def test_fetch_skips_junk_and_escaping_members(cache):
     root = icons.pack_dir(icons.get_pack("aws"))
     assert not (root.parent / "escape.svg").exists() and not (root / "__MACOSX").exists()
+
+
+def test_zone_draws_a_dashed_rect_with_a_corner_badge(cache):
+    out = render("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n"
+                 "zones:\n  - { cells: [0, 0, 0, 0], label: VPC, style: dashed, badge: lambda }\n")
+    assert '<rect class="zone b2"' in out and re.search(r'<use href="#t-aws-lambda"[^>]*width="22"', out)
+    assert '>VPC</text>' in out
+
+
+def test_zone_dotted_and_solid_styles(cache):
+    for style, cls in (("dotted", "zone b3"), ("solid", "zone")):
+        out = render("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n"
+                     f"zones:\n  - {{ cells: [0, 0, 0, 0], style: {style} }}\n")
+        assert f'<rect class="{cls}"' in out
+
+
+def test_awsres_icons_come_from_the_resource_archive(empty_cache):
+    pack = icons.get_pack("awsres")
+    blob = make_zip({pack.aliases["ec2"]: (FIX / "service.svg").read_bytes(),
+                     "Resource-Icons_07312026/Res_Compute/.DS_Store": b"junk"})
+    assert icons.fetch(pack, download=lambda url: blob) == 1
+    out = render("title: T\nnodes:\n  a: { icon: awsres:ec2, at: [0, 0] }\n")
+    assert '<rect class="tile"' in out and "#ED7100" in out  # resource glyphs keep their colour, on a tile

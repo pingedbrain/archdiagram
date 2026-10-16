@@ -1,0 +1,35 @@
+# AWS Resource Icons (official): the per-resource glyphs (48px, coloured on transparent) that go
+# with each service icon — EC2 instance, NAT gateway, subnets, tables... Drawn on a tile like
+# generic glyphs so they read as "the thing inside the service" next to the service squares.
+name = "awsres"
+title = "AWS Resource Icons"
+version = "07312026"
+homepage = "https://aws.amazon.com/architecture/icons/"
+license = "AWS permits use of the icons in architecture diagrams; do not redistribute the package or alter the icons."
+source = { kind = "archive", url = "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip" }
+include = ["Resource-Icons_07312026/*/Res_*_48.svg"]
+color = "keep"
+tile = true
+inset = 0.8
+
+[aliases]
+ec2 = "Resource-Icons_07312026/Res_Compute/Res_Amazon-EC2_Instance_48.svg"
+ec2-spot = "Resource-Icons_07312026/Res_Compute/Res_Amazon-EC2_Spot-Instance_48.svg"
+ec2-autoscaling = "Resource-Icons_07312026/Res_Compute/Res_Amazon-EC2_Auto-Scaling_48.svg"
+lambda-function = "Resource-Icons_07312026/Res_Compute/Res_AWS-Lambda_Lambda-Function_48.svg"
+igw = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_Internet-Gateway_48.svg"
+nat = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_NAT-Gateway_48.svg"
+router = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_Router_48.svg"
+nacl = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_Network-Access-Control-List_48.svg"
+vpc-endpoints = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_Endpoints_48.svg"
+vpc-peering = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_Peering-Connection_48.svg"
+vpn-gateway = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_VPN-Gateway_48.svg"
+customer-gateway = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_Customer-Gateway_48.svg"
+alb = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Elastic-Load-Balancing_Application-Load-Balancer_48.svg"
+nlb = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Elastic-Load-Balancing_Network-Load-Balancer_48.svg"
+vpc-res = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_Virtual-private-cloud-VPC_48.svg"
+eni = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-VPC_Elastic-Network-Interface_48.svg"
+table = "Resource-Icons_07312026/Res_Databases/Res_Amazon-DynamoDB_Table_48.svg"
+gsi = "Resource-Icons_07312026/Res_Databases/Res_Amazon-DynamoDB_Global-secondary-index_48.svg"
+route-table = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-Route-53_Route-Table_48.svg"
+hosted-zone = "Resource-Icons_07312026/Res_Networking-Content-Delivery/Res_Amazon-Route-53-Hosted-Zone_48.svg"
