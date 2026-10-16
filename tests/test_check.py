@@ -70,6 +70,32 @@ def test_out_of_canvas(empty_cache):
     assert kinds(spec) == ["out_of_canvas"]
 
 
+def test_node_on_a_zone_border_is_an_overlap(empty_cache):
+    spec = spec_from("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n"
+                     "zones:\n  - { cells: [0.6, -1, 1, 0], label: VPC }\n")
+    [p] = check(spec)
+    assert (p.kind, p.element, p.with_) == ("overlap", "node a icon", "zone 0")
+
+
+def test_nested_zones_do_not_overlap(empty_cache):
+    spec = spec_from("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n"
+                     "zones:\n  - { cells: [0, 0, 1, 1], label: vpc }\n  - { cells: [0, 1, 1, 1], label: subnet }\n")
+    assert check(spec) == []
+
+
+def test_zones_that_partially_cross_are_an_overlap(empty_cache):
+    spec = spec_from("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [4, 1] }\n"
+                     "zones:\n  - { cells: [0, 0, 2, 0], label: a }\n  - { cells: [1, 0.5, 3, 1], label: b }\n")
+    [p] = check(spec)
+    assert (p.kind, p.element, p.with_) == ("overlap", "zone 0", "zone 1")
+
+
+def test_zone_badge_is_resolved_like_a_node_icon(empty_cache):
+    [p] = check(spec_from("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n"
+                          "zones:\n  - { cells: [0, 0, 0, 0], badge: no-such-badge }\n"))
+    assert p.kind == "unknown_icon" and p.element == "zone 0 badge"
+
+
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.name)
 def test_examples_check_clean(empty_cache, path):
     assert check(load(path)) == []

@@ -9,7 +9,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from .spec import Band, Edge, Node, Spec
+from .spec import Band, Edge, Node, Spec, Zone
 
 GAP = 4             # px between an icon (or ring) and the end of an edge
 RING = 8            # px the accent ring extends beyond the icon
@@ -22,6 +22,10 @@ MARGIN = 16
 BAND_TOP = 40       # icon top of the first row -> band top
 BAND_BOTTOM = 68    # icon bottom of the last row -> band bottom (clears label + sub)
 BAND_PAD_X = 12
+ZONE_TOP = 40       # icon top of the first row -> zone top (room for label + badge)
+ZONE_BOTTOM = 68    # icon bottom of the last row -> zone bottom (clears label + sub)
+ZONE_BADGE = 22     # badge icon size, top-left inside the zone
+ZONE_BADGE_X = 12   # badge left offset from the zone border
 
 # font sizes per text class, matching the stylesheet
 SIZE = {"t": 14, "t mono": 12.5, "t gk-t": 16, "s": 11.5, "l": 11.5, "l acc-t": 11.5, "band-t": 11}
@@ -108,10 +112,20 @@ class PlacedBand:
 
 
 @dataclass(frozen=True)
+class PlacedZone:
+    index: int
+    zone: Zone
+    box: Box
+    label: Text | None
+    badge: Box | None
+
+
+@dataclass(frozen=True)
 class Layout:
     nodes: dict[str, PlacedNode]
     edges: tuple[PlacedEdge, ...]
     bands: tuple[PlacedBand, ...]
+    zones: tuple[PlacedZone, ...]
     view: Box
 
 
@@ -234,14 +248,29 @@ def layout(spec: Spec) -> Layout:
         pts = route(spec, e, a, b)
         edges.append(PlacedEdge(i, e, name, pts, edge_label(f"{name} label", e, pts)))
 
+    half = spec.grid.icon / 2
+    zones = []
+    for i, zone in enumerate(spec.zones):
+        c1, r1, c2, r2 = zone.cells
+        box = Box(center(spec, (c1, 0))[0] - spec.grid.col / 2, center(spec, (0, r1))[1] - half - ZONE_TOP,
+                  center(spec, (c2, 0))[0] + spec.grid.col / 2, center(spec, (0, r2))[1] + half + ZONE_BOTTOM)
+        badge = (Box(box.x1 + ZONE_BADGE_X, box.y1 + 8, box.x1 + ZONE_BADGE_X + ZONE_BADGE,
+                     box.y1 + 8 + ZONE_BADGE) if zone.badge else None)
+        label = None
+        if zone.label:
+            lx = box.x1 + (ZONE_BADGE_X + ZONE_BADGE + 8 if badge else 16)
+            label = Text(f"zone {i} label", zone.label, lx, box.y1 + 24, "start", "band-t")
+        zones.append(PlacedZone(i, zone, box, label, badge))
+
     boxes = [p.box for p in nodes.values()] + [t.box for p in nodes.values() for t in p.texts]
     boxes += [points_box(e.points) for e in edges] + [e.label.box for e in edges if e.label]
+    boxes += [z.box for z in zones] + [z.label.box for z in zones if z.label]
+    boxes += [z.badge for z in zones if z.badge]
     content = boxes[0]
     for b in boxes[1:]:
         content = content.union(b)
 
     bands = []
-    half = spec.grid.icon / 2
     for i, band in enumerate(spec.bands):
         top = center(spec, (0, band.rows[0]))[1] - half - BAND_TOP
         bottom = center(spec, (0, band.rows[1]))[1] + half + BAND_BOTTOM
@@ -256,4 +285,4 @@ def layout(spec: Spec) -> Layout:
             everything = everything.union(b.box).union(b.label.box)
         view = Box(math.floor(everything.x1 - MARGIN), math.floor(everything.y1 - MARGIN),
                    math.ceil(everything.x2 + MARGIN), math.ceil(everything.y2 + MARGIN))
-    return Layout(nodes, tuple(edges), tuple(bands), view)
+    return Layout(nodes, tuple(edges), tuple(bands), tuple(zones), view)

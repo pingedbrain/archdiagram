@@ -36,3 +36,19 @@ def test_defaults_and_prefix_slug():
     assert spec.grid.col == 150 and spec.grid.row == 110 and spec.grid.origin == (80, 70) and spec.grid.icon == 44
     assert spec.icons.packs == ("aws", "generic")
     assert spec.id_prefix == "agent-platform"
+
+
+def test_zone_cells_must_be_a_quadruple_in_order():
+    errs = errors("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\nzones:\n  - { cells: [0, 0, 1] }\n")
+    assert errs[0].startswith("zones[0].cells: expected a [col1, row1, col2, row2] quadruple")
+    errs = errors("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\nzones:\n  - { cells: [1, 0, 0, 1] }\n")
+    assert "is past last cell" in errs[0]
+
+
+def test_zone_defaults_and_badge():
+    spec = spec_from("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n"
+                     "zones:\n  - { cells: [0, 0, 1, 1], label: VPC, badge: aws:group-vpc }\n")
+    z = spec.zones[0]
+    assert z.cells == (0, 0, 1, 1) and z.style == "dashed" and z.label == "VPC" and z.badge == "aws:group-vpc"
+    errs = errors("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\nzones:\n  - { cells: [0, 0, 1, 1], style: funky }\n")
+    assert errs[0].startswith("zones[0].style: expected one of solid, dashed, dotted")

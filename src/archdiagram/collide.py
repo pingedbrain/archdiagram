@@ -84,7 +84,11 @@ def overlaps(lay: Layout) -> list[Overlap]:
             texts.append((e.label.name, e.label.box, e.name, e.label.content))
     for b in lay.bands:
         texts.append((b.label.name, b.label.box, f"band {b.index}", b.label.content))
+    for z in lay.zones:
+        if z.label:
+            texts.append((z.label.name, z.label.box, f"zone {z.index}", z.label.content))
     icons_ = [(f"node {nid} icon", p.box, f"node {nid}", "") for nid, p in lay.nodes.items()]
+    icons_ += [(f"zone {z.index} badge", z.badge, f"zone {z.index}", "") for z in lay.zones if z.badge]
     solids = texts + icons_
 
     out: list[Overlap] = []
@@ -121,6 +125,23 @@ def overlaps(lay: Layout) -> list[Overlap]:
             hit = b.box.intersect(c.box)
             if hit:
                 out.append(Overlap(f"band {b.index}", f"band {c.index}", b.box, c.box, hit))
+
+    # zones are containers: a solid must sit fully inside or outside, never across the border
+    for z in lay.zones:
+        for name, box, owner, content in solids:
+            if owner == f"zone {z.index}":
+                continue
+            hit = box.intersect(z.box)
+            if hit and not z.box.contains(box):
+                out.append(Overlap(name, f"zone {z.index}", box, z.box, hit, content))
+        for w in lay.zones[z.index + 1:]:
+            hit = z.box.intersect(w.box)
+            if hit and not (z.box.contains(w.box) or w.box.contains(z.box)):
+                out.append(Overlap(f"zone {z.index}", f"zone {w.index}", z.box, w.box, hit))
+        for b in lay.bands:
+            hit = z.box.intersect(b.box)
+            if hit and not (z.box.contains(b.box) or b.box.contains(z.box)):
+                out.append(Overlap(f"band {b.index}", f"zone {z.index}", b.box, z.box, hit))
     return out
 
 
@@ -188,6 +209,10 @@ def _fallback(o: Overlap) -> str:
                 f"edit its via, or move the node it leaves from")
     if a.startswith("node"):
         return f"move node {a.split()[1]} by half a cell (edit its at) or shorten its text"
+    if a.startswith("zone") or o.b.startswith("zone"):
+        return ("edit zones[*].cells: every element must sit fully inside or outside a zone "
+                "(nodes belong inside, labels cannot sit on the border), and zones that touch "
+                "must contain one another")
     return "move the rows of one band so they do not overlap (bands[*].rows)"
 
 
@@ -225,6 +250,13 @@ def check(spec: Spec) -> list[Problem]:
             icons.resolve(n.icon, order)
         except icons.IconError as exc:
             problems.append(Problem(exc.kind, f"node {n.id} icon", f"node {n.id}: {exc.message}", exc.suggestion))
+    for i, z in enumerate(spec.zones):
+        if not z.badge:
+            continue
+        try:
+            icons.resolve(z.badge, order)
+        except icons.IconError as exc:
+            problems.append(Problem(exc.kind, f"zone {i} badge", f"zone {i} badge: {exc.message}", exc.suggestion))
 
     for name, e in zip([f"edge {e.name}" for e in spec.edges], spec.edges):
         for end, ref in (("from", e.src), ("to", e.dst)):
@@ -253,6 +285,9 @@ def check(spec: Spec) -> list[Problem]:
         things += [(t.name, t.box) for p in lay.nodes.values() for t in p.texts]
         things += [(e.label.name, e.label.box) for e in lay.edges if e.label]
         things += [(f"band {b.index}", b.box) for b in lay.bands]
+        things += [(f"zone {z.index}", z.box) for z in lay.zones]
+        things += [(z.label.name, z.label.box) for z in lay.zones if z.label]
+        things += [(f"zone {z.index} badge", z.badge) for z in lay.zones if z.badge]
         for name, box in things:
             if not lay.view.contains(box):
                 problems.append(Problem("out_of_canvas", name, f"{name} {box.rounded()} is outside canvas {lay.view.rounded()}",

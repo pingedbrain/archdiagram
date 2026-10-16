@@ -50,3 +50,20 @@ def test_edge_label_above_longest_horizontal_segment():
     lay = layout(spec_from(BASE + "  b: { icon: ddb, at: [1, 0] }\nedges:\n  - { from: a, to: b, label: x }\n"))
     label = lay.edges[0].label
     assert (label.x, label.y, label.anchor) == (155, 61, "middle")
+
+
+def test_zone_box_spans_whole_columns_and_clears_labels_below():
+    lay = layout(spec_from("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [1, 0] }\n"
+                           "zones:\n  - { cells: [0, 0, 1, 0], label: VPC }\n"))
+    z = lay.zones[0]
+    assert (z.box.x1, z.box.x2) == (80 - 75, 230 + 75)  # borders at the cell edges
+    assert (z.box.y1, z.box.y2) == (70 - 22 - 40, 70 + 22 + 68)  # band-style room for label + sub
+    assert (z.label.x, z.label.y, z.label.cls) == (z.box.x1 + 16, z.box.y1 + 24, "band-t")
+
+
+def test_zone_badge_sits_in_the_corner_and_pushes_the_label():
+    lay = layout(spec_from("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n"
+                           "zones:\n  - { cells: [0, 0, 0, 0], label: VPC, badge: aws:group-vpc }\n"))
+    z = lay.zones[0]
+    assert (z.badge.x1, z.badge.y1) == (z.box.x1 + 12, z.box.y1 + 8) and z.badge.x2 - z.badge.x1 == 22
+    assert z.label.x == z.box.x1 + 12 + 22 + 8

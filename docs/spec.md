@@ -21,6 +21,7 @@ is x=80, column 1 is x=230; row 0 is y=70, row 1 is y=180.
 | `icons` | mapping | see below | Which icon packs bare names resolve against. |
 | `grid` | mapping | see below | Cell size, origin and icon size. |
 | `bands` | list | `[]` | Background bands grouping rows. |
+| `zones` | list | `[]` | Rectangular containers around a cell range (VPC-style groups). |
 | `nodes` | mapping, **required** | — | `id: node`. Ids match `[A-Za-z_][A-Za-z0-9_-]*`. |
 | `edges` | list | `[]` | Arrows between nodes. |
 | `canvas` | `[width, height]` px | auto | Fixed viewBox `0 0 w h`. Auto = bounding box of everything + 16 px. With a fixed canvas, anything outside is an `out_of_canvas` problem. |
@@ -45,6 +46,7 @@ Icon references in nodes:
 | Pack | Source | Native box | Drawn as |
 |---|---|---|---|
 | `aws` | AWS Architecture Icons 07312026 | 64, coloured square | as is |
+| `awsres` | AWS Resource Icons 07312026 | 48 glyph, service colour | on a tile |
 | `generic` | AWS `Res_General-Icons` light | 48 glyph, ink → `currentColor` | on a tile |
 | `gcp` | Google Cloud core product icons | 512, multicolour | on a tile |
 | `azure` | Azure Public Service Icons V24 | 18, multicolour | as is |
@@ -75,6 +77,31 @@ a Lambda reads as the same kind of object. Brand colours too dark for a dark the
 
 A band spans the full content width, from 40 px above the first row's icons to 68 px below the
 last row's icons (room for label + sub). Leave about 1.5 rows between two bands.
+
+## `zones[]`
+
+A zone is a rectangular container — the AWS way of drawing a VPC, a subnet, a region: a border
+around a set of nodes, not an icon. `check` requires every element to sit fully inside or fully
+outside a zone (a node or label on the border is an `overlap`), and zones that overlap must
+contain one another (nesting a subnet inside a VPC is fine; a partial crossing is not).
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `cells` | `[col1, row1, col2, row2]`, **required** | — | Inclusive grid-cell range the zone covers. |
+| `label` | text | `""` | Small caps title inside the top-left corner, next to the badge. |
+| `style` | `solid` \| `dashed` \| `dotted` | `dashed` | `dashed`/`dotted` draw only the border (the AWS look); `solid` fills `--sunken`. |
+| `badge` | icon reference | `""` | Small icon at the top-left corner, AWS group style: `aws:group-vpc`, `aws:public-subnet`, `aws:aws-cloud`. |
+
+The left and right borders run at the edges of the first and last column (midway through the
+gutter); the top and bottom leave 40 px / 68 px of room around the icons so labels and subs fit.
+Give a zone an extra column if a node's `label_side: left|right` text needs the room. Zones may
+nest; draw order is biggest first so a solid parent sits behind a solid child.
+
+```yaml
+zones:
+  - { cells: [0, 0, 2.4, 1], label: "VPC 10.0.0.0/16", style: dashed, badge: aws:group-vpc }
+  - { cells: [0, 0, 1, 0], label: "public subnet", style: dotted, badge: aws:public-subnet }
+```
 
 ## `nodes.<id>`
 
@@ -131,7 +158,7 @@ Edge geometry:
 | `unknown_icon` / `ambiguous_icon` / `unknown_pack` | Icon reference does not resolve; suggestion lists closest `pack:name`. |
 | `bad_ref` | Edge endpoint is not a node id. |
 | `bad_via` | A waypoint is inside a node. |
-| `overlap` | Two elements' boxes intersect: text/text, text/icon, icon/icon, edge/icon, edge/text, edge/edge, band/band. |
+| `overlap` | Two elements' boxes intersect: text/text, text/icon, icon/icon, edge/icon, edge/text, edge/edge, band/band; or an element crosses a zone border, or two zones / a zone and a band partially overlap (nesting is fine). |
 | `out_of_canvas` | Only with a fixed `canvas`. |
 
 Suggestions are verified: each candidate (another `label_side`, another `route`, moving a node by
