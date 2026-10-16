@@ -13,15 +13,15 @@ legend:
   - { sample: dashed, text: "async" }
   - { sample: zone-dotted, tint: blue, text: "subnet" }
 nodes:
-  r53:    { icon: aws:Arch_Amazon-Route-53_48, at: [0, -0.5], label: Route53, mono: true }
-  cdn:    { icon: aws:Arch_Amazon-CloudFront_48, at: [1.4, -0.5], label: CDN }
-  waf:    { icon: aws:Arch_AWS-WAF_48, at: [3.3, -0.5], label: WAF }
+  r53:    { icon: aws:route53, at: [0, -0.5], label: Route53, mono: true }
+  cdn:    { icon: aws:cloudfront, at: [1.4, -0.5], label: CDN }
+  waf:    { icon: aws:waf, at: [3.3, -0.5], label: WAF }
   alb:    { icon: awsres:alb, at: [4.6, -0.5], label: ALB }
   nat:    { icon: awsres:nat, at: [6, 0.4], label: NAT, label_side: left }
   app_a:  { icon: awsres:ec2, at: [4.6, 1.4], label: app, sub: "az-a", note: "t3.large" }
-  cache_a: { icon: aws:Arch_Amazon-ElastiCache_48, at: [5.9, 1.9], label: cache }
+  cache_a: { icon: aws:elasticache, at: [5.9, 1.9], label: cache }
   app_b:  { icon: awsres:ec2, at: [7.4, 1.4], label: app, sub: "az-b", note: "t3.large" }
-  cache_b: { icon: aws:Arch_Amazon-ElastiCache_48, at: [8.6, 1.8], label: cache, label_side: right }
+  cache_b: { icon: aws:elasticache, at: [8.6, 1.8], label: cache, label_side: right }
   worker: { icon: aws:lambda, at: [7.4, 2.4], label: worker, mono: true }
   sqs:    { icon: aws:sqs, at: [10.2, 2.4], label: SQS }
   ddb:    { icon: awsres:table, at: [4.6, 3.8], label: orders, mono: true }
