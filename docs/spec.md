@@ -22,6 +22,7 @@ is x=80, column 1 is x=230; row 0 is y=70, row 1 is y=180.
 | `grid` | mapping | see below | Cell size, origin and icon size. |
 | `bands` | list | `[]` | Background bands grouping rows. |
 | `zones` | list | `[]` | Rectangular containers around a cell range (VPC-style groups). |
+| `legend` | list | `[]` | Optional legend box, bottom-left of the figure. |
 | `nodes` | mapping, **required** | — | `id: node`. Ids match `[A-Za-z_][A-Za-z0-9_-]*`. |
 | `edges` | list | `[]` | Arrows between nodes. |
 | `canvas` | `[width, height]` px | auto | Fixed viewBox `0 0 w h`. Auto = bounding box of everything + 16 px. With a fixed canvas, anything outside is an `out_of_canvas` problem. |
@@ -91,6 +92,7 @@ contain one another (nesting a subnet inside a VPC is fine; a partial crossing i
 | `label` | text | `""` | Small caps title inside the top-left corner, next to the badge. |
 | `style` | `solid` \| `dashed` \| `dotted` | `dashed` | `dashed`/`dotted` draw only the border (the AWS look); `solid` fills `--sunken`. |
 | `badge` | icon reference | `""` | Small icon at the top-left corner, AWS group style: `aws:group-vpc`, `aws:public-subnet`, `aws:aws-cloud`. |
+| `tint` | `orange` \| `green` \| `blue` \| `purple` \| `gray` \| `red` | `""` | Border colour, the AWS group palette (VPC orange, public subnet green, private blue). |
 
 The left and right borders run at the edges of the first and last column (midway through the
 gutter); the top and bottom leave 40 px / 68 px of room around the icons so labels and subs fit.
@@ -143,6 +145,27 @@ Edge geometry:
   8 px to the right of a vertical one.
 - Edges that share a source (a fork) or a target (a merge) may overlap on purpose; any other
   collinear overlap between edges is a problem.
+- Elbow corners render rounded. Where a vertical edge segment crosses another edge's horizontal
+  wire, it draws a small jump arc (the circuit-diagram hop); forks/merges never hop.
+
+## `legend[]`
+
+An optional legend box at the bottom-left of the figure. Each item is one row: a swatch plus text.
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `text` | text, **required** | — | Row label (11.5 px). |
+| `sample` | `edge` \| `accent` \| `dashed` \| `dots` \| `ants` \| `zone` \| `zone-dotted` | — | Line/zone swatch. Give exactly one of `sample` or `icon`. |
+| `icon` | icon reference | — | Draw that icon as the swatch. |
+| `tint` | same values as `zones[].tint` | `""` | Tint the `zone` swatch to match a tinted zone. |
+
+```yaml
+legend:
+  - { sample: accent, text: "camino crítico" }
+  - { sample: dashed, text: "async / opcional" }
+  - { sample: zone-dotted, tint: green, text: "public subnet" }
+  - { icon: aws:lambda, text: "serverless" }
+```
 
 ## What `check` reports
 

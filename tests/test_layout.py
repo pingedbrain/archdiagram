@@ -67,3 +67,20 @@ def test_zone_badge_sits_in_the_corner_and_pushes_the_label():
     z = lay.zones[0]
     assert (z.badge.x1, z.badge.y1) == (z.box.x1 + 12, z.box.y1 + 8) and z.badge.x2 - z.badge.x1 == 22
     assert z.label.x == z.box.x1 + 12 + 22 + 8
+
+
+def test_crossings_gives_a_hop_spot_on_the_vertical_wire():
+    from archdiagram.layout import crossings
+    lay = layout(spec_from("title: T\nnodes:\n"
+                           "  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [2, 0] }\n"
+                           "  c: { icon: lambda, at: [1, -1] }\n  d: { icon: ddb, at: [1, 1] }\n"
+                           "edges:\n  - { from: a, to: b }\n  - { from: c, to: d }\n"))
+    assert crossings(lay.edges) == {1: {0: [(230.0, 70.0)]}}  # c->d hops the a->b wire
+
+
+def test_legend_sits_below_the_content():
+    lay = layout(spec_from("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n"
+                           "legend:\n  - { sample: accent, text: crit }\n  - { icon: lambda, text: fn }\n"))
+    lg = lay.legend
+    assert lg.box.y1 > lay.nodes["a"].box.y2 and len(lg.items) == 2
+    assert lg.items[1].label.x == lg.items[1].swatch.x2 + 10

@@ -63,3 +63,10 @@ def test_edge_flow_styles_and_flags():
     errs = errors("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [1, 0] }\n"
                   "edges:\n  - { from: a, to: b, flow: fast }\n")
     assert errs[0].startswith("edges[0].flow: expected true, dots or ants")
+
+
+def test_legend_needs_exactly_one_swatch_kind():
+    errs = errors("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\nlegend:\n  - { text: x }\n")
+    assert "exactly one of sample or icon" in errs[0]
+    errs = errors("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\nlegend:\n  - { sample: nope, text: x }\n")
+    assert errs[0].startswith("legend[0].sample: expected one of")

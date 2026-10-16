@@ -10,7 +10,7 @@ import re
 from html import escape
 
 from . import icons
-from .layout import Layout, PlacedNode, Text
+from .layout import Layout, PlacedNode, Text, crossings
 from .spec import Spec
 
 LIGHT = {
@@ -35,6 +35,13 @@ _RULES = """\
 .arch .zone { fill: var(--sunken); }
 .arch .zone.b2 { fill: none; stroke: var(--line); stroke-dasharray: 5 5; }
 .arch .zone.b3 { fill: none; stroke: var(--fg-3); stroke-width: 2; stroke-dasharray: 0.5 5; stroke-linecap: round; }
+.arch .zone.t-orange { stroke: #E77D02; stroke-width: 1.6; }
+.arch .zone.t-green { stroke: #7AA116; stroke-width: 1.6; }
+.arch .zone.t-blue { stroke: #248BD2; stroke-width: 1.6; }
+.arch .zone.t-purple { stroke: #8C4FFF; stroke-width: 1.6; }
+.arch .zone.t-gray { stroke: #879196; stroke-width: 1.6; }
+.arch .zone.t-red { stroke: #DD344C; stroke-width: 1.6; }
+.arch .legend { fill: var(--sunken); }
 .arch .band-t { fill: var(--fg-3); font-size: 11px; font-weight: 600; letter-spacing: .08em; }
 .arch .t { fill: var(--fg); font-size: 14px; font-weight: 600; }
 .arch .t.mono { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; }
@@ -92,11 +99,16 @@ def _unit(a, b) -> tuple[float, float]:
     return ((b[0] - a[0]) / d, (b[1] - a[1]) / d)
 
 
-def _path(points, radius: float = 12) -> str:
-    """Polyline path; interior corners are rounded with a quadratic (the AWS elbow look)."""
+HOP_R = 7  # px radius of the jump arc where a vertical wire hops a horizontal one
+
+
+def _path(points, radius: float = 12, hops: dict | None = None) -> str:
+    """Polyline path; interior corners are rounded with a quadratic (the AWS elbow look) and
+    `hops` ({segment_index: [(x, y)]}) inserts a jump arc where the wire crosses another."""
     pts = list(points)
+    hops = hops or {}
     d = [f"M{_n(pts[0][0])},{_n(pts[0][1])}"]
-    if len(pts) < 3 or radius <= 0:
+    if len(pts) < 3 and not hops:
         for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
             if abs(y0 - y1) < 0.01:
                 d.append(f"H{_n(x1)}")
@@ -105,14 +117,19 @@ def _path(points, radius: float = 12) -> str:
             else:
                 d.append(f"L{_n(x1)},{_n(y1)}")
         return " ".join(d)
-    for i in range(1, len(pts) - 1):
-        prev, cur, nxt = pts[i - 1], pts[i], pts[i + 1]
-        ux, uy = _unit(prev, cur)
-        vx, vy = _unit(cur, nxt)
-        r = min(radius, math.dist(prev, cur) / 2, math.dist(cur, nxt) / 2)
-        d.append(f"L{_n(cur[0] - ux * r)},{_n(cur[1] - uy * r)}")
-        d.append(f"Q{_n(cur[0])},{_n(cur[1])} {_n(cur[0] + vx * r)},{_n(cur[1] + vy * r)}")
-    d.append(f"L{_n(pts[-1][0])},{_n(pts[-1][1])}")
+    for i in range(len(pts) - 1):
+        a, b = pts[i], pts[i + 1]
+        ux, uy = _unit(a, b)
+        v = _unit(b, pts[i + 2]) if i + 2 < len(pts) else None
+        r = min(radius, math.dist(a, b) / 2, math.dist(b, pts[i + 2]) / 2) if v else 0
+        end = (b[0] - ux * r, b[1] - uy * r) if v else b
+        for h in sorted(hops.get(i, []), key=lambda p: (p[0] - a[0]) * ux + (p[1] - a[1]) * uy):
+            d.append(f"L{_n(h[0] - ux * HOP_R)},{_n(h[1] - uy * HOP_R)}")
+            d.append(f"A{HOP_R} {HOP_R} 0 0 1 {_n(h[0] + ux * HOP_R)},{_n(h[1] + uy * HOP_R)}")
+        d.append(f"L{_n(end[0])},{_n(end[1])}")
+        if v:
+            nx = (b[0] + v[0] * r, b[1] + v[1] * r)
+            d.append(f"Q{_n(b[0])},{_n(b[1])} {_n(nx[0])},{_n(nx[1])}")
     return " ".join(d)
 
 
@@ -126,6 +143,8 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
     order = spec.icons.packs
     refs = {n.id: icons.resolve(n.icon, order) for n in spec.nodes}
     badges = {z.index: icons.resolve(z.zone.badge, order) for z in lay.zones if z.zone.badge}
+    if lay.legend:
+        badges.update({f"lg{it.index}": icons.resolve(it.item.icon, order) for it in lay.legend.items if it.item.icon})
     for ref in (*refs.values(), *badges.values()):
         pack = icons.get_pack(ref.pack)
         if not icons.is_fetched(pack):
@@ -160,6 +179,8 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
 
     for z in sorted(lay.zones, key=lambda p: -(p.box.x2 - p.box.x1) * (p.box.y2 - p.box.y1)):
         cls = {"solid": "zone", "dashed": "zone b2", "dotted": "zone b3"}[z.zone.style]
+        if z.zone.tint:
+            cls += f" t-{z.zone.tint}"
         out.append(f'<rect class="{cls}" x="{_n(z.box.x1)}" y="{_n(z.box.y1)}" width="{_n(z.box.x2 - z.box.x1)}" '
                    f'height="{_n(z.box.y2 - z.box.y1)}" rx="10"/>')
         if z.badge:
@@ -170,6 +191,7 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
         if z.label:
             out.append(_text(z.label))
 
+    hop_map = crossings(lay.edges)
     for e in lay.edges:  # edges first, so icons sit on top
         cls, marker = ("a acc", mka) if e.edge.accent else ("a", mk)
         if e.edge.dashed:
@@ -177,9 +199,9 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
         if e.edge.flow == "ants":
             cls += " ants"
         ends = f' marker-end="url(#{marker})"' + (f' marker-start="url(#{marker})"' if e.edge.both else "")
-        if e.edge.flow == "dots" or len(e.points) > 2:  # dots need a <path> for the mpath reference
+        if e.edge.flow == "dots" or len(e.points) > 2 or e.index in hop_map:
             eid = f' id="{prefix}-e{e.index}"' if e.edge.flow == "dots" else ""
-            out.append(f'<path{eid} class="{cls}" d="{_path(e.points)}"{ends}/>')
+            out.append(f'<path{eid} class="{cls}" d="{_path(e.points, hops=hop_map.get(e.index))}"{ends}/>')
         else:
             (x1, y1), (x2, y2) = e.points
             out.append(f'<line class="{cls}" x1="{_n(x1)}" y1="{_n(y1)}" x2="{_n(x2)}" y2="{_n(y2)}"{ends}/>')
@@ -188,6 +210,32 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
 
     for nid, p in lay.nodes.items():
         out += _node(p, refs[nid], symbols[_symbol_id(prefix, refs[nid])], _symbol_id(prefix, refs[nid]))
+
+    if lay.legend:
+        lb = lay.legend.box
+        out.append(f'<rect class="legend" x="{_n(lb.x1)}" y="{_n(lb.y1)}" width="{_n(lb.x2 - lb.x1)}" '
+                   f'height="{_n(lb.y2 - lb.y1)}" rx="10"/>')
+        for it in lay.legend.items:
+            s = it.swatch
+            my = (s.y1 + s.y2) / 2
+            sample = it.item.sample
+            if it.item.icon:
+                ref = badges[f"lg{it.index}"]
+                sid = _symbol_id(prefix, ref)
+                inner = min(18, s.x2 - s.x1)
+                use = f'<use href="#{sid}" x="{_n((s.x1 + s.x2) / 2 - inner / 2)}" y="{_n(my - inner / 2)}" width="{_n(inner)}" height="{_n(inner)}"/>'
+                out.append(f'<g class="ink">{use}</g>' if "currentColor" in symbols[sid] else use)
+            elif sample in ("zone", "zone-dotted"):
+                zcls = ("zone b3" if sample == "zone-dotted" else "zone b2") + (f" t-{it.item.tint}" if it.item.tint else "")
+                out.append(f'<rect class="{zcls}" x="{_n(s.x1 + 2)}" y="{_n(s.y1 + 2)}" width="{_n(s.x2 - s.x1 - 4)}" '
+                           f'height="{_n(s.y2 - s.y1 - 4)}" rx="4"/>')
+            else:
+                ecls = {"edge": "a", "accent": "a acc", "dashed": "a dash", "dots": "a", "ants": "a ants"}[sample]
+                mk_ = mka if sample == "accent" else mk
+                out.append(f'<line class="{ecls}" x1="{_n(s.x1)}" y1="{_n(my)}" x2="{_n(s.x2)}" y2="{_n(my)}" marker-end="url(#{mk_})"/>')
+                if sample == "dots":
+                    out.append(f'<circle class="pkt" r="3.5" cx="{_n((s.x1 + s.x2) / 2)}" cy="{_n(my)}"/>')
+            out.append(_text(it.label))
 
     for e in lay.edges:  # packets last, riding on top of the wire
         if e.edge.flow != "dots":

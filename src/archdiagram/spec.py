@@ -20,6 +20,8 @@ EdgeLabelSide = Literal["above", "below", "left", "right"]
 Route = Literal["auto", "hv", "vh"]
 BandStyle = Literal["solid", "dashed"]
 ZoneStyle = Literal["solid", "dashed", "dotted"]
+TINTS = ("orange", "green", "blue", "purple", "gray", "red")
+SAMPLES = ("edge", "accent", "dashed", "dots", "ants", "zone", "zone-dotted")
 
 
 class SpecError(ValueError):
@@ -55,6 +57,15 @@ class Zone:
     label: str = ""
     style: ZoneStyle = "dashed"
     badge: str = ""
+    tint: str = ""
+
+
+@dataclass(frozen=True)
+class LegendItem:
+    text: str
+    sample: str = ""  # a line/zone swatch from SAMPLES; "" when `icon` is used
+    icon: str = ""
+    tint: str = ""
 
 
 @dataclass(frozen=True)
@@ -98,6 +109,7 @@ class Spec:
     grid: Grid = field(default_factory=Grid)
     bands: tuple[Band, ...] = ()
     zones: tuple[Zone, ...] = ()
+    legend: tuple[LegendItem, ...] = ()
     edges: tuple[Edge, ...] = ()
     canvas: tuple[float, float] | None = None
     prefix: str = ""
@@ -185,7 +197,7 @@ class _Reader:
 
 def parse(doc: Any) -> Spec:
     r = _Reader()
-    top = {"title", "claim", "caption", "icons", "grid", "bands", "zones", "nodes", "edges", "canvas", "prefix"}
+    top = {"title", "claim", "caption", "icons", "grid", "bands", "zones", "legend", "nodes", "edges", "canvas", "prefix"}
     if not r.keys("spec", doc, top, {"title", "nodes"}):
         raise SpecError(r.errors)
 
@@ -228,7 +240,7 @@ def parse(doc: Any) -> Spec:
         raw_zones = []
     for i, z in enumerate(raw_zones):
         p = f"zones[{i}]"
-        if not r.keys(p, z, {"label", "cells", "style", "badge"}, {"cells"}):
+        if not r.keys(p, z, {"label", "cells", "style", "badge", "tint"}, {"cells"}):
             continue
         cells = z.get("cells")
         if not isinstance(cells, (list, tuple)) or len(cells) != 4:
@@ -242,6 +254,26 @@ def parse(doc: Any) -> Spec:
             label=r.text(f"{p}.label", z.get("label")),
             style=r.choice(f"{p}.style", z.get("style"), ("solid", "dashed", "dotted"), "dashed"),
             badge=r.text(f"{p}.badge", z.get("badge")),
+            tint=r.choice(f"{p}.tint", z.get("tint"), TINTS, ""),
+        ))
+
+    legend = []
+    raw_legend = doc.get("legend") or []
+    if not isinstance(raw_legend, list):
+        r.fail("legend", "expected a list")
+        raw_legend = []
+    for i, it in enumerate(raw_legend):
+        p = f"legend[{i}]"
+        if not r.keys(p, it, {"sample", "icon", "text", "tint"}, {"text"}):
+            continue
+        if (it.get("sample") is None) == (it.get("icon") is None):
+            r.fail(p, "give exactly one of sample or icon")
+            continue
+        legend.append(LegendItem(
+            text=r.text(f"{p}.text", it.get("text")),
+            sample=r.choice(f"{p}.sample", it.get("sample"), SAMPLES, ""),
+            icon=r.text(f"{p}.icon", it.get("icon")),
+            tint=r.choice(f"{p}.tint", it.get("tint"), TINTS, ""),
         ))
 
     nodes = []
@@ -318,7 +350,8 @@ def parse(doc: Any) -> Spec:
         title=r.text("title", doc.get("title")),
         claim=r.text("claim", doc.get("claim")),
         caption=r.text("caption", doc.get("caption")),
-        icons=icons, grid=grid, bands=tuple(bands), zones=tuple(zones), nodes=tuple(nodes), edges=tuple(edges),
+        icons=icons, grid=grid, bands=tuple(bands), zones=tuple(zones), legend=tuple(legend),
+        nodes=tuple(nodes), edges=tuple(edges),
         canvas=canvas, prefix=prefix,
     )
 
