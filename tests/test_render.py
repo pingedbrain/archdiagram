@@ -100,6 +100,25 @@ def test_long_flow_edge_spreads_packets_and_combines_with_accent(cache):
     assert 'prefers-reduced-motion' not in out  # that rule lives in the stylesheet
 
 
+def test_flow_ants_uses_css_marching_dashes(cache):
+    out = render("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [1, 1] }\n"
+                 "edges:\n  - { from: a, to: b, flow: ants }\n")
+    assert 'class="a ants"' in out and "animateMotion" not in out
+    assert "@keyframes arch-ants" in css()
+
+
+def test_dashed_and_both_endpoints(cache):
+    out = render("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [1, 0] }\n"
+                 "edges:\n  - { from: a, to: b, dashed: true, both: true }\n")
+    assert 'class="a dash"' in out and "marker-start" in out and "marker-end" in out
+
+
+def test_elbow_edges_get_rounded_corners(cache):
+    out = render("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [1, 1] }\n"
+                 "edges:\n  - { from: a, to: b }\n")
+    assert " Q" in out  # a quadratic at the corner, not a sharp join
+
+
 def test_awsres_icons_come_from_the_resource_archive(empty_cache):
     pack = icons.get_pack("awsres")
     blob = make_zip({pack.aliases["ec2"]: (FIX / "service.svg").read_bytes(),

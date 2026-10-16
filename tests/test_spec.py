@@ -52,3 +52,14 @@ def test_zone_defaults_and_badge():
     assert z.cells == (0, 0, 1, 1) and z.style == "dashed" and z.label == "VPC" and z.badge == "aws:group-vpc"
     errs = errors("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\nzones:\n  - { cells: [0, 0, 1, 1], style: funky }\n")
     assert errs[0].startswith("zones[0].style: expected one of solid, dashed, dotted")
+
+
+def test_edge_flow_styles_and_flags():
+    spec = spec_from("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [1, 0] }\n"
+                     "edges:\n  - { from: a, to: b, flow: ants }\n  - { from: b, to: a, flow: true, dashed: true, both: true }\n")
+    assert spec.edges[0].flow == "ants"
+    e = spec.edges[1]
+    assert e.flow == "dots" and e.dashed and e.both
+    errs = errors("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [1, 0] }\n"
+                  "edges:\n  - { from: a, to: b, flow: fast }\n")
+    assert errs[0].startswith("edges[0].flow: expected true, dots or ants")
