@@ -5,7 +5,7 @@ icons: { packs: [aws, awsres, generic] }
 zones:
   - { cells: [1, -0.5, 4.5, 1], label: "VPC 10.0.0.0/16", style: dashed, badge: aws:group-vpc, tint: orange }
   - { cells: [1, 0, 2, 1], label: "public subnet", style: dotted, badge: aws:public-subnet, tint: green }
-  - { cells: [3, 0, 4.4, 1], label: "private subnet", style: dotted, badge: aws:private-subnet, tint: blue }
+  - { cells: [3, 0, 4.4, 1], label: "private subnet", style: dotted, badge: aws:private-subnet, tint: blue, label_side: bottom }
 legend:
   - { sample: dots, text: "tráfico" }
   - { sample: ants, text: "egress" }
@@ -16,13 +16,13 @@ nodes:
   igw:  { icon: awsres:igw, at: [1.3, 0], label: igw, mono: true }
   alb:  { icon: awsres:alb, at: [2, 0], label: ALB }
   nat:  { icon: awsres:nat, at: [1.5, 1], label: NAT }
-  app:  { icon: awsres:ec2, at: [3, 0.5], label: app }
+  app:  { icon: awsres:ec2, at: [3, 0.5], label: app, note: "t3.medium" }
   db:   { icon: awsres:table, at: [4, 1], label: sessions, mono: true }
   s3:   { icon: aws:s3, at: [5.5, 1], label: S3 }
 edges:
-  - { from: inet, to: igw, label: https, flow: true }
-  - { from: igw, to: alb, label: https, flow: true }
-  - { from: alb, to: app, label: forward, label_side: left, flow: true }
-  - { from: app, to: db, label: rw, flow: true, both: true }
-  - { from: app, to: nat, label: egress, route: vh, flow: ants }
+  - { from: inet, to: igw, label: https, flow: true, num: true }
+  - { from: igw, to: alb, label: https, flow: true, num: true }
+  - { from: alb, to: app, label: forward, label_side: left, flow: true, num: true }
+  - { from: app, to: db, label: rw, flow: true, both: true, arrow: diamond, num: true }
+  - { from: app, to: nat, label: egress, route: hv, flow: ants, label_side: below }
   - { from: app, to: s3, label: read, route: hv, flow: true }
