@@ -18,6 +18,6 @@ edges:
   - { from: inet, to: igw, label: https, flow: true }
   - { from: igw, to: alb, label: https, flow: true }
   - { from: alb, to: app, label: forward, label_side: left, flow: true }
-  - { from: app, to: db, label: rw, flow: true }
-  - { from: app, to: nat, label: egress, route: vh }
+  - { from: app, to: db, label: rw, flow: true, both: true }
+  - { from: app, to: nat, label: egress, route: vh, flow: ants }
   - { from: app, to: s3, label: read, route: hv, flow: true }

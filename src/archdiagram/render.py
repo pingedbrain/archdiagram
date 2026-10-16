@@ -42,14 +42,17 @@ _RULES = """\
 .arch .s { fill: var(--fg-3); font-size: 11.5px; }
 .arch .a { fill: none; stroke: var(--fg-3); stroke-width: 1.4; }
 .arch .a.acc { stroke: var(--primary); stroke-width: 2; }
+.arch .a.dash { stroke-dasharray: 5 5; }
+.arch .a.ants { stroke-dasharray: 6 4; animation: arch-ants .5s linear infinite; }
+@keyframes arch-ants { to { stroke-dashoffset: -10; } }
 .arch .mk { fill: var(--fg-3); }
 .arch .mk-a { fill: var(--primary); }
-.arch .l { fill: var(--fg-2); font-size: 11.5px; }
+.arch .l { fill: var(--fg-2); font-size: 11.5px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
 .arch .acc-t { fill: var(--primary); font-weight: 600; }
 .arch .ink { color: var(--fg); }
 .arch .pkt { fill: var(--fg-2); stroke: var(--surface); stroke-width: 1.5; }
 .arch .pkt.acc { fill: var(--primary); }
-@media (prefers-reduced-motion: reduce) { .arch .pkt { display: none; } }
+@media (prefers-reduced-motion: reduce) { .arch .pkt { display: none; } .arch .a.ants { animation: none; } }
 .arch .tile { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
 .arch .gk-ring { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 2; }
 .arch figcaption { font-size: 13px; color: var(--fg-2); margin-top: 10px; max-width: 80ch; }
@@ -84,15 +87,32 @@ def _text(t: Text) -> str:
             f"{escape(t.content, quote=False)}</text>")
 
 
-def _path(points) -> str:
-    d = [f"M{_n(points[0][0])},{_n(points[0][1])}"]
-    for (x0, y0), (x1, y1) in zip(points, points[1:]):
-        if abs(y0 - y1) < 0.01:
-            d.append(f"H{_n(x1)}")
-        elif abs(x0 - x1) < 0.01:
-            d.append(f"V{_n(y1)}")
-        else:
-            d.append(f"L{_n(x1)},{_n(y1)}")
+def _unit(a, b) -> tuple[float, float]:
+    d = math.dist(a, b) or 1
+    return ((b[0] - a[0]) / d, (b[1] - a[1]) / d)
+
+
+def _path(points, radius: float = 12) -> str:
+    """Polyline path; interior corners are rounded with a quadratic (the AWS elbow look)."""
+    pts = list(points)
+    d = [f"M{_n(pts[0][0])},{_n(pts[0][1])}"]
+    if len(pts) < 3 or radius <= 0:
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            if abs(y0 - y1) < 0.01:
+                d.append(f"H{_n(x1)}")
+            elif abs(x0 - x1) < 0.01:
+                d.append(f"V{_n(y1)}")
+            else:
+                d.append(f"L{_n(x1)},{_n(y1)}")
+        return " ".join(d)
+    for i in range(1, len(pts) - 1):
+        prev, cur, nxt = pts[i - 1], pts[i], pts[i + 1]
+        ux, uy = _unit(prev, cur)
+        vx, vy = _unit(cur, nxt)
+        r = min(radius, math.dist(prev, cur) / 2, math.dist(cur, nxt) / 2)
+        d.append(f"L{_n(cur[0] - ux * r)},{_n(cur[1] - uy * r)}")
+        d.append(f"Q{_n(cur[0])},{_n(cur[1])} {_n(cur[0] + vx * r)},{_n(cur[1] + vy * r)}")
+    d.append(f"L{_n(pts[-1][0])},{_n(pts[-1][1])}")
     return " ".join(d)
 
 
@@ -152,12 +172,17 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
 
     for e in lay.edges:  # edges first, so icons sit on top
         cls, marker = ("a acc", mka) if e.edge.accent else ("a", mk)
-        if e.edge.flow or len(e.points) > 2:  # flow edges need a <path> for the mpath reference
-            eid = f' id="{prefix}-e{e.index}"' if e.edge.flow else ""
-            out.append(f'<path{eid} class="{cls}" d="{_path(e.points)}" marker-end="url(#{marker})"/>')
+        if e.edge.dashed:
+            cls += " dash"
+        if e.edge.flow == "ants":
+            cls += " ants"
+        ends = f' marker-end="url(#{marker})"' + (f' marker-start="url(#{marker})"' if e.edge.both else "")
+        if e.edge.flow == "dots" or len(e.points) > 2:  # dots need a <path> for the mpath reference
+            eid = f' id="{prefix}-e{e.index}"' if e.edge.flow == "dots" else ""
+            out.append(f'<path{eid} class="{cls}" d="{_path(e.points)}"{ends}/>')
         else:
             (x1, y1), (x2, y2) = e.points
-            out.append(f'<line class="{cls}" x1="{_n(x1)}" y1="{_n(y1)}" x2="{_n(x2)}" y2="{_n(y2)}" marker-end="url(#{marker})"/>')
+            out.append(f'<line class="{cls}" x1="{_n(x1)}" y1="{_n(y1)}" x2="{_n(x2)}" y2="{_n(y2)}"{ends}/>')
         if e.label:
             out.append(_text(e.label))
 
@@ -165,7 +190,7 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
         out += _node(p, refs[nid], symbols[_symbol_id(prefix, refs[nid])], _symbol_id(prefix, refs[nid]))
 
     for e in lay.edges:  # packets last, riding on top of the wire
-        if not e.edge.flow:
+        if e.edge.flow != "dots":
             continue
         length = sum(math.dist(p, q) for p, q in zip(e.points, e.points[1:]))
         dur = max(2, round(length / 80, 1))  # ~80 px/s so every edge moves at the same speed

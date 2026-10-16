@@ -125,7 +125,9 @@ zones:
 | `route` | `auto` \| `hv` \| `vh` | `auto` | `auto` = straight if the two centres share a row or column, else `hv`. `hv` = horizontal first, then vertical; `vh` = the reverse. |
 | `via` | list of `[x, y]` px | `[]` | Explicit waypoints; overrides `route`. |
 | `accent` | bool | `false` | Blue, thicker, blue arrowhead and label. |
-| `flow` | bool | `false` | Animated packets travel the edge source → target (SMIL; hidden under `prefers-reduced-motion`). |
+| `dashed` | bool | `false` | Static dashed line, for async or optional links. |
+| `both` | bool | `false` | Arrowhead at both ends (request/response). |
+| `flow` | bool \| `dots` \| `ants` | `false` | Animated traffic. `true`/`dots` = packets travel the path (SMIL); `ants` = marching dashes (CSS). Packets hide and dashes stop under `prefers-reduced-motion`. |
 | `label_side` | `above` \| `below` \| `left` \| `right` | auto | Picks the segment *and* the side: `above`/`below` use the longest horizontal segment, `left`/`right` the longest vertical one. |
 
 Edge geometry:
