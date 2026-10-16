@@ -15,9 +15,9 @@ nodes:
   db:   { icon: awsres:table, at: [4, 1], label: sessions, mono: true }
   s3:   { icon: aws:s3, at: [5.5, 1], label: S3 }
 edges:
-  - { from: inet, to: igw, label: https }
-  - { from: igw, to: alb, label: https }
-  - { from: alb, to: app, label: forward, label_side: left }
-  - { from: app, to: db, label: rw }
+  - { from: inet, to: igw, label: https, flow: true }
+  - { from: igw, to: alb, label: https, flow: true }
+  - { from: alb, to: app, label: forward, label_side: left, flow: true }
+  - { from: app, to: db, label: rw, flow: true }
   - { from: app, to: nat, label: egress, route: vh }
-  - { from: app, to: s3, label: read, route: hv }
+  - { from: app, to: s3, label: read, route: hv, flow: true }
