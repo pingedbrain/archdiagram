@@ -5,6 +5,7 @@ also works on a page that defines none of the tokens.
 
 from __future__ import annotations
 
+import math
 import re
 from html import escape
 
@@ -46,6 +47,9 @@ _RULES = """\
 .arch .l { fill: var(--fg-2); font-size: 11.5px; }
 .arch .acc-t { fill: var(--primary); font-weight: 600; }
 .arch .ink { color: var(--fg); }
+.arch .pkt { fill: var(--fg-2); stroke: var(--surface); stroke-width: 1.5; }
+.arch .pkt.acc { fill: var(--primary); }
+@media (prefers-reduced-motion: reduce) { .arch .pkt { display: none; } }
 .arch .tile { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
 .arch .gk-ring { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 2; }
 .arch figcaption { font-size: 13px; color: var(--fg-2); margin-top: 10px; max-width: 80ch; }
@@ -148,16 +152,28 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
 
     for e in lay.edges:  # edges first, so icons sit on top
         cls, marker = ("a acc", mka) if e.edge.accent else ("a", mk)
-        if len(e.points) == 2:
+        if e.edge.flow or len(e.points) > 2:  # flow edges need a <path> for the mpath reference
+            eid = f' id="{prefix}-e{e.index}"' if e.edge.flow else ""
+            out.append(f'<path{eid} class="{cls}" d="{_path(e.points)}" marker-end="url(#{marker})"/>')
+        else:
             (x1, y1), (x2, y2) = e.points
             out.append(f'<line class="{cls}" x1="{_n(x1)}" y1="{_n(y1)}" x2="{_n(x2)}" y2="{_n(y2)}" marker-end="url(#{marker})"/>')
-        else:
-            out.append(f'<path class="{cls}" d="{_path(e.points)}" marker-end="url(#{marker})"/>')
         if e.label:
             out.append(_text(e.label))
 
     for nid, p in lay.nodes.items():
         out += _node(p, refs[nid], symbols[_symbol_id(prefix, refs[nid])], _symbol_id(prefix, refs[nid]))
+
+    for e in lay.edges:  # packets last, riding on top of the wire
+        if not e.edge.flow:
+            continue
+        length = sum(math.dist(p, q) for p, q in zip(e.points, e.points[1:]))
+        dur = max(2, round(length / 80, 1))  # ~80 px/s so every edge moves at the same speed
+        n = min(4, max(1, round(length / 160)))
+        cls = "pkt acc" if e.edge.accent else "pkt"
+        for k in range(n):
+            out.append(f'<circle class="{cls}" r="3.5"><animateMotion dur="{dur:g}s" begin="-{round(k * dur / n, 1):g}s" '
+                       f'repeatCount="indefinite"><mpath href="#{prefix}-e{e.index}"/></animateMotion></circle>')
     out.append("</svg>")
     return "\n".join(out)
 

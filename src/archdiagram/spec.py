@@ -78,6 +78,7 @@ class Edge:
     route: Route = "auto"
     via: tuple[tuple[float, float], ...] = ()
     accent: bool = False
+    flow: bool = False
     label_side: EdgeLabelSide | None = None
 
     @property
@@ -271,7 +272,7 @@ def parse(doc: Any) -> Spec:
     if not isinstance(raw_edges, list):
         r.fail("edges", "expected a list")
         raw_edges = []
-    edge_keys = {"from", "to", "label", "route", "via", "accent", "label_side"}
+    edge_keys = {"from", "to", "label", "route", "via", "accent", "flow", "label_side"}
     for i, e in enumerate(raw_edges):
         p = f"edges[{i}]"
         if not r.keys(p, e, edge_keys, {"from", "to"}):
@@ -287,6 +288,7 @@ def parse(doc: Any) -> Spec:
             route=r.choice(f"{p}.route", e.get("route"), ("auto", "hv", "vh"), "auto"),
             via=tuple(r.pair(f"{p}.via[{j}]", v) for j, v in enumerate(via)),
             accent=r.flag(f"{p}.accent", e.get("accent")),
+            flow=r.flag(f"{p}.flow", e.get("flow")),
             label_side=r.choice(f"{p}.label_side", e.get("label_side"), ("above", "below", "left", "right"), None),
         ))
 

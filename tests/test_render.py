@@ -86,6 +86,20 @@ def test_zone_dotted_and_solid_styles(cache):
         assert f'<rect class="{cls}"' in out
 
 
+def test_flow_edge_gets_an_id_and_travelling_packets(cache):
+    out = render("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [1, 0] }\n"
+                 "edges:\n  - { from: a, to: b, flow: true }\n")
+    assert '<path id="t-e0"' in out and '<animateMotion' in out and 'href="#t-e0"' in out
+    assert out.count('class="pkt"') == 1 and "<line" not in out
+
+
+def test_long_flow_edge_spreads_packets_and_combines_with_accent(cache):
+    out = render("title: T\nnodes:\n  a: { icon: lambda, at: [0, 0] }\n  b: { icon: ddb, at: [5, 0] }\n"
+                 "edges:\n  - { from: a, to: b, flow: true, accent: true }\n")
+    assert out.count('class="pkt acc"') == 4  # ~700 px at one packet per 160 px
+    assert 'prefers-reduced-motion' not in out  # that rule lives in the stylesheet
+
+
 def test_awsres_icons_come_from_the_resource_archive(empty_cache):
     pack = icons.get_pack("awsres")
     blob = make_zip({pack.aliases["ec2"]: (FIX / "service.svg").read_bytes(),
