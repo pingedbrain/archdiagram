@@ -255,7 +255,7 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
                            f'height="{_n(s.y2 - s.y1 - 4)}" rx="4"/>')
             else:
                 ecls = {"edge": "a", "accent": "a acc", "dashed": "a dash", "dots": "a", "ants": "a ants"}[sample]
-                mk_ = mka if sample == "accent" else mk
+                mk_ = f"{prefix}-mk{'-a' if sample == 'accent' else ''}"
                 out.append(f'<line class="{ecls}" x1="{_n(s.x1)}" y1="{_n(my)}" x2="{_n(s.x2)}" y2="{_n(my)}" marker-end="url(#{mk_})"/>')
                 if sample == "dots":
                     out.append(f'<circle class="pkt" r="3.5" cx="{_n((s.x1 + s.x2) / 2)}" cy="{_n(my)}"/>')
