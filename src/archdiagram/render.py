@@ -229,11 +229,15 @@ def svg(spec: Spec, lay: Layout, standalone: bool = False) -> str:
     for e in lay.edges:  # sequence chips sit on the wire midpoint
         if not e.edge.num:
             continue
-        seq += 1
         (x1, y1), (x2, y2) = max(segments(e.points), key=lambda s: abs(s[1][0] - s[0][0]) + abs(s[1][1] - s[0][1]))
         mx, my, acc = (x1 + x2) / 2, (y1 + y2) / 2, " acc" if e.edge.accent else ""
+        if e.edge.num == "auto":
+            seq += 1
+            txt = str(seq)
+        else:
+            txt = e.edge.num  # explicit chip text, e.g. "4" repeated on fan-out branches
         out.append(f'<circle class="num{acc}" cx="{_n(mx)}" cy="{_n(my)}" r="8"/>')
-        out.append(f'<text class="num-t{acc}" x="{_n(mx)}" y="{_n(my + 3.5)}" text-anchor="middle">{seq}</text>')
+        out.append(f'<text class="num-t{acc}" x="{_n(mx)}" y="{_n(my + 3.5)}" text-anchor="middle">{escape(txt)}</text>')
 
     if lay.legend:
         lb = lay.legend.box

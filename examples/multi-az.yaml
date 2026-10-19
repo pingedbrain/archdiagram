@@ -31,14 +31,14 @@ edges:
   - { from: r53, to: cdn, label: alias, num: true }
   - { from: cdn, to: waf, label: filter, num: true }
   - { from: waf, to: alb, label: https, flow: dots, num: true }
-  - { from: alb, to: app_a, label: forward, flow: dots, num: true }
-  - { from: alb, to: app_b, label: forward, via: [[1095, 15], [1095, 224]], label_side: above }
+  - { from: alb, to: app_a, label: forward, flow: dots, num: "4" }
+  - { from: alb, to: app_b, label: forward, via: [[1095, 15], [1095, 224]], label_side: above, num: "4" }
   - { from: app_a, to: cache_a, label: get }
   - { from: app_b, to: cache_b, label: get }
   - { from: app_a, to: nat, label: egress, route: hv, flow: ants, label_side: below }
   - { from: app_a, to: ddb, label: read, dashed: true, label_side: left }
-  - { from: app_a, to: rds, label: sql, via: [[800, 300], [800, 488]] }
+  - { from: app_a, to: rds, label: sql, via: [[815, 300], [815, 488]] }
   - { from: worker, to: ddb, label: write, route: hv, label_side: below, accent: true }
   - { from: sqs, to: worker, label: poll, dashed: true, accent: true }
   - { from: app_b, to: sqs, label: enqueue, accent: true }
-  - { from: app_b, to: s3, label: put, arrow: open }
+  - { from: app_b, to: s3, label: put, arrow: open, route: vh }

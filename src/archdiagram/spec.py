@@ -95,7 +95,7 @@ class Edge:
     dashed: bool = False
     both: bool = False
     arrow: str = "filled"  # "filled" | "open" | "diamond"
-    num: bool = False
+    num: str = ""  # "" | "auto" (counted) | literal chip text (e.g. "4" on both fan-out branches)
     label_side: EdgeLabelSide | None = None
 
     @property
@@ -343,7 +343,8 @@ def parse(doc: Any) -> Spec:
             dashed=r.flag(f"{p}.dashed", e.get("dashed")),
             both=r.flag(f"{p}.both", e.get("both")),
             arrow=r.choice(f"{p}.arrow", e.get("arrow"), ("filled", "open", "diamond"), "filled"),
-            num=r.flag(f"{p}.num", e.get("num")),
+            num="auto" if e.get("num") is True else "" if e.get("num") in (None, False)
+                else str(e.get("num")),
             label_side=r.choice(f"{p}.label_side", e.get("label_side"), ("above", "below", "left", "right"), None),
         ))
 
