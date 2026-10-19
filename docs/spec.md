@@ -132,7 +132,7 @@ zones:
 | `dashed` | bool | `false` | Static dashed line, for async or optional links. |
 | `both` | bool | `false` | Arrowhead at both ends (request/response). |
 | `arrow` | `filled` \| `open` \| `diamond` | `filled` | Arrowhead style. |
-| `num` | bool | `false` | Numbered chip on the wire midpoint, counted over `num` edges in order (sequence diagrams: 1, 2, 3...). |
+| `num` | bool \| text | `false` | Numbered chip on the wire midpoint. `true` = counted in edge order (1, 2, 3...); a literal like `num: "4"` shows that text — repeat it on fan-out branches so parallel paths share a step number. |
 | `flow` | bool \| `dots` \| `ants` | `false` | Animated traffic. `true`/`dots` = packets travel the path (SMIL); `ants` = marching dashes (CSS). Packets hide and dashes stop under `prefers-reduced-motion`. |
 | `label_side` | `above` \| `below` \| `left` \| `right` | auto | Picks the segment *and* the side: `above`/`below` use the longest horizontal segment, `left`/`right` the longest vertical one. |
 
