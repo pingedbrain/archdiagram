@@ -22,7 +22,7 @@ nodes:
   cache_a: { icon: aws:elasticache, at: [5.9, 1.9], label: cache }
   app_b:  { icon: awsres:ec2, at: [7.4, 1.4], label: app, sub: "az-b", note: "t3.large" }
   cache_b: { icon: aws:elasticache, at: [8.6, 1.8], label: cache, label_side: right }
-  worker: { icon: aws:lambda, at: [7.4, 2.4], label: worker, mono: true }
+  worker: { icon: aws:lambda, at: [7.4, 2.4], label: worker, mono: true, accent: true }
   sqs:    { icon: aws:sqs, at: [10.2, 2.4], label: SQS }
   ddb:    { icon: awsres:table, at: [4.6, 3.8], label: orders, mono: true }
   rds:    { icon: aws:aurora, at: [6.2, 3.8], label: catalog }
@@ -32,13 +32,13 @@ edges:
   - { from: cdn, to: waf, label: filter, num: true }
   - { from: waf, to: alb, label: https, flow: dots, num: true }
   - { from: alb, to: app_a, label: forward, flow: dots, num: true }
-  - { from: alb, to: app_b, label: forward, via: [[1095, 15], [1095, 224]] }
+  - { from: alb, to: app_b, label: forward, via: [[1095, 15], [1095, 224]], label_side: above }
   - { from: app_a, to: cache_a, label: get }
   - { from: app_b, to: cache_b, label: get }
   - { from: app_a, to: nat, label: egress, route: hv, flow: ants, label_side: below }
   - { from: app_a, to: ddb, label: read, dashed: true, label_side: left }
   - { from: app_a, to: rds, label: sql, via: [[800, 300], [800, 488]] }
-  - { from: worker, to: ddb, label: write, route: hv, label_side: below }
-  - { from: sqs, to: worker, label: poll, dashed: true }
-  - { from: app_b, to: sqs, label: enqueue }
+  - { from: worker, to: ddb, label: write, route: hv, label_side: below, accent: true }
+  - { from: sqs, to: worker, label: poll, dashed: true, accent: true }
+  - { from: app_b, to: sqs, label: enqueue, accent: true }
   - { from: app_b, to: s3, label: put, arrow: open }
