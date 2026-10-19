@@ -15,11 +15,11 @@ from .spec import Spec
 
 LIGHT = {
     "--bg": "#FDFDFC", "--surface": "#FFFFFF", "--sunken": "#F5F7FA", "--fg": "#0F1729", "--fg-2": "#475467",
-    "--fg-3": "#6B7588", "--line": "#E4E9F0", "--primary": "#004FF8", "--primary-soft": "#EFF4FC",
+    "--fg-3": "#6B7588", "--wire": "#A5AFC0", "--line": "#E4E9F0", "--primary": "#004FF8", "--primary-soft": "#EFF4FC",
 }
 DARK = {
     "--bg": "#0C111B", "--surface": "#121927", "--sunken": "#182132", "--fg": "#E8EDF5", "--fg-2": "#B3BDCC",
-    "--fg-3": "#8C97A8", "--line": "#253046", "--primary": "#5B8CFF", "--primary-soft": "#16244A",
+    "--fg-3": "#8C97A8", "--wire": "#677183", "--line": "#253046", "--primary": "#5B8CFF", "--primary-soft": "#16244A",
 }
 FONTS = {
     "--font-body": '"Inter", system-ui, -apple-system, "Segoe UI", sans-serif',
@@ -35,28 +35,28 @@ _RULES = """\
 .arch .zone { fill: var(--sunken); }
 .arch .zone.b2 { fill: none; stroke: var(--line); stroke-dasharray: 5 5; }
 .arch .zone.b3 { fill: none; stroke: var(--fg-3); stroke-width: 2; stroke-dasharray: 0.5 5; stroke-linecap: round; }
-.arch .zone.t-orange { stroke: #E77D02; stroke-width: 1.6; }
-.arch .zone.t-green { stroke: #7AA116; stroke-width: 1.6; }
-.arch .zone.t-blue { stroke: #248BD2; stroke-width: 1.6; }
-.arch .zone.t-purple { stroke: #8C4FFF; stroke-width: 1.6; }
-.arch .zone.t-gray { stroke: #879196; stroke-width: 1.6; }
-.arch .zone.t-red { stroke: #DD344C; stroke-width: 1.6; }
+.arch .zone.t-orange { stroke: #E77D02; stroke-width: 1.2; }
+.arch .zone.t-green { stroke: #7AA116; stroke-width: 1.2; }
+.arch .zone.t-blue { stroke: #248BD2; stroke-width: 1.2; }
+.arch .zone.t-purple { stroke: #8C4FFF; stroke-width: 1.2; }
+.arch .zone.t-gray { stroke: #879196; stroke-width: 1.2; }
+.arch .zone.t-red { stroke: #DD344C; stroke-width: 1.2; }
 .arch .legend { fill: var(--sunken); }
 .arch .band-t { fill: var(--fg-3); font-size: 11px; font-weight: 600; letter-spacing: .08em; }
 .arch .t { fill: var(--fg); font-size: 14px; font-weight: 600; }
 .arch .t.mono { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; }
 .arch .gk-t { fill: var(--primary); font-size: 16px; font-weight: 700; }
 .arch .s { fill: var(--fg-3); font-size: 11.5px; }
-.arch .a { fill: none; stroke: var(--fg-3); stroke-width: 1.4; }
+.arch .a { fill: none; stroke: var(--wire); stroke-width: 1.3; }
 .arch .a.acc { stroke: var(--primary); stroke-width: 2; }
 .arch .a.dash { stroke-dasharray: 5 5; }
 .arch .a.ants { stroke-dasharray: 6 4; animation: arch-ants .5s linear infinite; }
 @keyframes arch-ants { to { stroke-dashoffset: -10; } }
-.arch .mk { fill: var(--fg-3); }
+.arch .mk { fill: var(--wire); }
 .arch .mk-a { fill: var(--primary); }
-.arch .mko { fill: none; stroke: var(--fg-3); stroke-width: 1.4; }
+.arch .mko { fill: none; stroke: var(--wire); stroke-width: 1.4; }
 .arch .mko-a { fill: none; stroke: var(--primary); stroke-width: 1.6; }
-.arch .mkd { fill: var(--fg-3); }
+.arch .mkd { fill: var(--wire); }
 .arch .mkd-a { fill: var(--primary); }
 .arch .num { fill: var(--surface); stroke: var(--fg-3); stroke-width: 1.2; }
 .arch .num.acc { stroke: var(--primary); }
