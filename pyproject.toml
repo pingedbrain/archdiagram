@@ -1,6 +1,6 @@
 [project]
 name = "archdiagram"
-version = "0.2.0"
+version = "0.3.0"
 description = "YAML spec -> hand-quality architecture diagrams as themeable inline SVG, with official provider icons."
 readme = "README.md"
 license = "MIT"
